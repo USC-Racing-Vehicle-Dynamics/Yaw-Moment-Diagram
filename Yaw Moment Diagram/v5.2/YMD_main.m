@@ -1,4 +1,4 @@
-%% Yaw Moment Diagram (v5.1)
+%% Yaw Moment Diagram (v5.2)
 
 %% Clear
 
