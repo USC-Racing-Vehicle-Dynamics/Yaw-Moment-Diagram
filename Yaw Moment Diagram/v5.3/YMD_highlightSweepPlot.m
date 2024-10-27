@@ -1,6 +1,8 @@
 %% Function: Highlight Sweep Plot
+
 % Choose a plot corresponding to a certain value of swept parameter
 % to be highlighted
+
 function YMD_highlightSweepPlot
 
 YMDSweepPlots = evalin("base", 'YMDSweepPlots');

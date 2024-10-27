@@ -1,6 +1,8 @@
 %% Function: Progress
+
 % Display a progress window when another function is running, 
 % and close the window when that function ends
+
 function YMD_progress(prompt)
     
 %---------------------------*
@@ -21,11 +23,12 @@ switch prompt
     
     case 2 % Make sweep plot
 
-        progress = uiprogressdlg(fig,'Title','YMD Sweep Plot','Indeterminate','on');
-        progress.Message = 'Plotting...';
+        progress = uiprogressdlg(fig,'Title','YMD Sweep Plot');
+        progress.Message = 'Start Plotting...';
         drawnow
     
-        YMD_makeSweepPlot;
+        YMD_updateParameters;
+        YMD_makeSweepPlot(progress);
 
     case 3 % Adjust plot ranges (single plot)
 
@@ -53,6 +56,8 @@ switch prompt
 
 end
 
-close(fig)
+close(fig);
+
+% End of function
 
 end

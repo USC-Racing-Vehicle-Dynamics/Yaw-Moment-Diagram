@@ -1,4 +1,4 @@
-%% Yaw Moment Diagram (v5.2)
+%% Yaw Moment Diagram (v5.3)
 
 %% Clear
 
@@ -45,6 +45,7 @@ heading.sweep.Interpreter = 'tex';
 % (1) Mass
 paramField.W = uieditfield(tab.data, 'numeric', 'Position', [200 600 50 22]);
 paramField.W.Value = param.W;
+paramField.W.Limits = [0.1 inf];
 
 paramLbl.W = uilabel(tab.data, 'Position', [50 600 50 22]);
 paramLbl.W.Text = 'Mass';
@@ -55,6 +56,7 @@ paramUnit.W.Items = {'lb'};
 % (2) Front weight distribution
 paramField.fwd = uieditfield(tab.data, 'numeric', 'Position', [200 575 50 22]);
 paramField.fwd.Value = param.fwd;
+paramField.fwd.Limits = [0 100];
 paramField.fwd.ValueDisplayFormat = "%d%%";
 
 paramLbl.fwd = uilabel(tab.data, 'Position', [50 575 150 22]);
@@ -63,8 +65,8 @@ paramLbl.fwd.Text = 'Front Weight Distribution';
 % (3) Wheelbase
 paramField.l = uieditfield(tab.data, 'numeric', 'Position', [200 550 50 22]);
 paramField.l.Value = param.l;
+paramField.l.Limits = [0.1 Inf];
 paramField.l.ValueDisplayFormat = "%.1f";
-% paramField.l.ValueChangedFcn = @(src, event) YMD_updateParameters(3);
 
 paramLbl.l = uilabel(tab.data, 'Position', [50 550 150 22]);
 paramLbl.l.Text = 'Wheelbase';
@@ -75,6 +77,7 @@ paramUnit.l.Items = {'in'};
 % (4) Front track width
 paramField.t_F = uieditfield(tab.data, 'numeric', 'Position', [200 525 50 22]);
 paramField.t_F.Value = param.t_F;
+paramField.t_F.Limits = [0.1 Inf];
 paramField.t_F.ValueDisplayFormat = "%.1f";
 
 paramLbl.t_F = uilabel(tab.data, 'Position', [50 525 150 22]);
@@ -86,6 +89,7 @@ paramUnit.t_F.Items = {'in'};
 % (5) Rear track width
 paramField.t_R = uieditfield(tab.data, 'numeric', 'Position', [200 500 50 22]);
 paramField.t_R.Value = param.t_R;
+paramField.t_R.Limits = [0.1 Inf];
 paramField.t_R.ValueDisplayFormat = "%.1f";
 
 paramLbl.t_R = uilabel(tab.data, 'Position', [50 500 150 22]);
@@ -97,6 +101,7 @@ paramUnit.t_R.Items = {'in'};
 % (6) CG Height
 paramField.h = uieditfield(tab.data, 'numeric', 'Position', [200 475 50 22]);
 paramField.h.Value = param.h;
+paramField.h.Limits = [0 Inf];
 paramField.h.ValueDisplayFormat = "%.2f";
 
 paramLbl.h = uilabel(tab.data, 'Position', [50 475 150 22]);
@@ -108,6 +113,7 @@ paramUnit.h.Items = {'in'};
 % (7) Front roll center height
 paramField.z_RF = uieditfield(tab.data, 'numeric', 'Position', [200 450 50 22]);
 paramField.z_RF.Value = param.z_RF;
+paramField.z_RF.Limits = [0 Inf];
 paramField.z_RF.ValueDisplayFormat = "%.2f";
 
 paramLbl.z_RF = uilabel(tab.data, 'Position', [50 450 150 22]);
@@ -119,6 +125,7 @@ paramUnit.z_RF.Items = {'in'};
 % (8) Rear roll center height
 paramField.z_RR = uieditfield(tab.data, 'numeric', 'Position', [200 425 50 22]);
 paramField.z_RR.Value = param.z_RR;
+paramField.z_RR.Limits = [0 Inf];
 paramField.z_RR.ValueDisplayFormat = "%.2f";
 
 paramLbl.z_RR = uilabel(tab.data, 'Position', [50 425 150 22]);
@@ -154,6 +161,7 @@ paramLbl.toe_r.Text = 'Rear Toe';
 % (12) Tire spring rate
 paramField.tire_k = uieditfield(tab.data, 'numeric', 'Position', [200 325 50 22]);
 paramField.tire_k.Value = param.tire_k;
+paramField.tire_k.Limits = [0 Inf];
 
 paramLbl.tire_k = uilabel(tab.data, 'Position', [50 325 150 22]);
 paramLbl.tire_k.Text = 'Tire Spring Rate';
@@ -164,6 +172,7 @@ paramUnit.tire_k.Items = {'lb/in'};
 % (13) Front spring stiffness
 paramField.f_spring_k = uieditfield(tab.data, 'numeric', 'Position', [200 300 50 22]);
 paramField.f_spring_k.Value = param.f_spring_k;
+paramField.f_spring_k.Limits = [0 Inf];
 
 paramLbl.f_spring_k = uilabel(tab.data, 'Position', [50 300 150 22]);
 paramLbl.f_spring_k.Text = 'Front Spring Stiffness';
@@ -174,6 +183,7 @@ paramUnit.f_spring_k.Items = {'lb/in'};
 % (14) Rear spring stiffness
 paramField.r_spring_k = uieditfield(tab.data, 'numeric', 'Position', [200 275 50 22]);
 paramField.r_spring_k.Value = param.r_spring_k;
+paramField.r_spring_k.Limits = [0 Inf];
 
 paramLbl.r_spring_k = uilabel(tab.data, 'Position', [50 275 150 22]);
 paramLbl.r_spring_k.Text = 'Rear Spring Stiffness';
@@ -184,6 +194,7 @@ paramUnit.r_spring_k.Items = {'lb/in'};
 % (15) Front ARB stiffness
 paramField.f_arb_k = uieditfield(tab.data, 'numeric', 'Position', [200 250 50 22]);
 paramField.f_arb_k.Value = param.f_arb_k;
+paramField.f_arb_k.Limits = [0 Inf];
 
 paramLbl.f_arb_k = uilabel(tab.data, 'Position', [50 250 150 22]);
 paramLbl.f_arb_k.Text = 'Front ARB Stiffness';
@@ -194,6 +205,7 @@ paramUnit.f_arb_k.Items = {'lb/in'};
 % (16) Rear ARB stiffness
 paramField.r_arb_k = uieditfield(tab.data, 'numeric', 'Position', [200 225 50 22]);
 paramField.r_arb_k.Value = param.r_arb_k;
+paramField.r_arb_k.Limits = [0 Inf];
 
 paramLbl.r_arb_k = uilabel(tab.data, 'Position', [50 225 150 22]);
 paramLbl.r_arb_k.Text = 'Rear ARB Stiffness';
@@ -204,6 +216,7 @@ paramUnit.r_arb_k.Items = {'lb/in'};
 % (17) Coefficient of lift
 paramField.C_L = uieditfield(tab.data, 'numeric', 'Position', [200 200 50 22]);
 paramField.C_L.Value = param.C_L;
+paramField.C_L.Limits = [0 Inf];
 
 paramLbl.C_L = uilabel(tab.data, 'Position', [50 200 150 22]);
 paramLbl.C_L.Text = 'Coefficient of Lift';
@@ -211,6 +224,7 @@ paramLbl.C_L.Text = 'Coefficient of Lift';
 % (18) Center of Pressure
 paramField.CoP = uieditfield(tab.data, 'numeric', 'Position', [200 175 50 22]);
 paramField.CoP.Value = param.CoP;
+paramField.CoP.Limits = [0 100];
 paramField.CoP.ValueDisplayFormat = "%d%%";
 
 paramLbl.CoP = uilabel(tab.data, 'Position', [50 175 150 22]);

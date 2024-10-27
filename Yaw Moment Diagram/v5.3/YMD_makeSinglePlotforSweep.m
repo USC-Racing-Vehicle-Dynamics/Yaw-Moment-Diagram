@@ -1,47 +1,77 @@
-%% Function: Make Single YMD Plot
-% Make one YMD plot based on user specified parameter values in data tab
-function YMD_makeSinglePlot
+%% Function: Make Single YMD Plot for Sweep
 
-%% Setup
+% Make single plot within YMD_makeSweepPlot.m function 
+% for one certain value of the swept parameter
 
-% Switch to Single Plot tab
-tabGroup = evalin("base", 'tabGroup');
-tab.singlePlot = evalin("base", 'tab.singlePlot');
-tabGroup.SelectedTab = tab.singlePlot;
+function YMD_makeSinglePlotforSweep(param, sweptParam, sweptParamSpace, sweptParamIndex, YMDSweepPlots, YMDSweep)
 
-% Import structured parameters
-param = evalin('base', 'param');
- 
-% Import non-structured parameters
-IA_rad = evalin("base", 'IA_rad'); % Inclination angle [rad]
+%% Program Setup
 
-tire_FY = evalin("base", 'tire_FY'); % Tire FY Model
-tire_MZ = evalin("base", 'tire_MZ'); % Tire FZ Model
+YMDSweepPlots{sweptParamIndex} = [];
 
-IP_psi_f = evalin("base", 'IP_psi_f'); % Front inflation pressure [psi]        
-IP_psi_r = evalin("base", 'IP_psi_r'); % Rear inflation pressure [psi]           
-IP_pa_f = IP_psi_f*6894.76;
-IP_pa_r = IP_psi_r*6894.76;
+% Assign changing values to swept parameter
+switch sweptParam.ValueIndex
 
-tireForceScale = evalin("base", 'tireForceScale');  % Tire force scale       
+    case 1 % Vehicle mass
+        param.W = sweptParamSpace(sweptParamIndex);
 
-% Convert units for script calculation
-param.fwd = param.fwd/100;              % [%] to none
-param.l = param.l/12;                   % [in] to [ft]
-param.t_F = param.t_F/12;               % [in] to [ft]
-param.t_R = param.t_R/12;               % [in] to [ft]
-param.h = param.h/12;                   % [in] to [ft]
-param.z_RF = param.z_RF/12;             % [in] to [ft]
-param.z_RR = param.z_RR/12;             % [in] to [ft]
-param.ackermann = param.ackermann/100;  % [%] to none
-param.toe_f = deg2rad(param.toe_f);     % [deg] to [rad]
-param.toe_r = deg2rad(param.toe_r);     % [deg] to [rad]
-param.tire_k = param.tire_k*12;         % [lb/in] to [lb/ft]
-param.f_spring_k = param.f_spring_k*12; % [lb/in] to [lb/ft]
-param.r_spring_k = param.r_spring_k*12; % [lb/in] to [lb/ft]
-param.f_arb_k = param.f_arb_k*12;       % [lb/in] to [lb/ft]
-param.r_arb_k = param.r_arb_k*12;       % [lb/in] to [lb/ft]
-param.CoP = param.CoP/100;              % [%] to none
+    case 2 % Front weight distribution
+        param.fwd = sweptParamSpace(sweptParamIndex);
+
+    case 3 % Wheelbase
+        param.l = sweptParamSpace(sweptParamIndex)/12;
+
+    case 4 % Front Track Width
+        param.t_F = sweptParamSpace(sweptParamIndex)/12;
+
+    case 5 % Rear Track Width
+        param.t_R = sweptParamSpace(sweptParamIndex)/12;
+
+    case 6 % CG Height
+        param.h = sweptParamSpace(sweptParamIndex)/12;
+
+    case 7 % Front Roll Center Height
+        param.z_RF = sweptParamSpace(sweptParamIndex)/12;
+
+    case 8 % Rear Roll Center Height
+        param.z_RR = sweptParamSpace(sweptParamIndex)/12;
+
+    case 9 % Ackermann
+        param.ackermann = sweptParamSpace(sweptParamIndex)/100;
+
+    case 10 % Front Toe
+        param.toe_f = deg2rad(sweptParamSpace(sweptParamIndex));
+
+    case 11 % Rear Toe
+        param.toe_r = deg2rad(sweptParamSpace(sweptParamIndex));
+
+    case 12 % Tire Spring Rate
+        param.tire_k = sweptParamSpace(sweptParamIndex)*12;
+
+    case 13 % Front Spring Stiffness
+        param.f_spring_k = sweptParamSpace(sweptParamIndex)*12;
+
+    case 14 % Rear Spring Stiffness
+        param.r_spring_k = sweptParamSpace(sweptParamIndex)*12;
+
+    case 15 % Front ARB Stiffness
+        param.f_arb_k = sweptParamSpace(sweptParamIndex)*12;
+
+    case 16 % Rear ARB Stiffness
+        param.r_arb_k = sweptParamSpace(sweptParamIndex)*12;
+
+    case 17 % Coefficient of Lift
+        param.C_L = sweptParamSpace(sweptParamIndex)*12;
+
+    case 18 % Center of Pressure
+        param.CoP = sweptParamSpace(sweptParamIndex)/100;
+
+    case 19 % Velocity [mph]
+        param.V.mph = sweptParamSpace(sweptParamIndex);
+        param.V.fts = 1.46667 * param.V.mph;    
+        param.V.kph = 1.60934 * param.V.mph;
+
+end
 
 %% Calculate Intermediate Parameters
 
@@ -50,7 +80,7 @@ param.CoP = param.CoP/100;              % [%] to none
 %--------*
 % Masses |
 %--------*
-W_F = param.W*param.fwd;            % Front total mass [lb]
+W_F = param.W * param.fwd;            % Front total mass [lb]
 W_R = param.W - W_F;          % Rear total mass [lb]
 W_uF = 48.24;           % Front unsprung mass [lb]
 W_uR = 47.56;           % Rear unsprung mass [lb]
@@ -70,7 +100,7 @@ Izz = (param.W/param.g)*((a + b)^2 + param.t_F^2)/12; % Moment of inertia
 % CG/Roll Center/Ride Heights |
 %-----------------------------*
 h_u = 8/12;                                             % CG height of unsprung mass [ft]
-h_s = (param.h*param.W - h_u*W_u)/W_s;                              % CG height of sprung mass [ft]
+h_s = (param.h * param.W - h_u * W_u)/W_s;                              % CG height of sprung mass [ft]
 H = param.h - (param.z_RF + (param.z_RR - param.z_RF)*a/param.l);                     % CG height above roll axis [ft]
 % Assume x-position of sprung mass CG
 % is the same as total CG
@@ -83,7 +113,7 @@ z_WF = h_u;                                             % CG height of front uns
 z_WR = h_u;                                             % CG height of rear unsprung mass [ft]
 front_RH = -0.6;                                        % Front ride height [ft]
 rear_RH = -0.6;                                         % Rear ride height [ft]
-  
+
 %===| SUSPENSION |====================================================
 
 %---------------*
@@ -103,11 +133,11 @@ A = 0.96;
 rho_air = 0.0763;
 
 % Total downforce
-DF = param.C_L*A*param.V.mph^2*rho_air/2;
+DF = param.C_L * A * param.V.mph^2 * rho_air/2;
 
 % Front and rear downforces [lb]
-f_DF = DF*param.CoP;
-r_DF = DF*(1 - param.CoP);
+f_DF = DF * param.CoP;
+r_DF = DF * (1 - param.CoP);
 
 % Front and rear downforces [lb]
 % [f_DF, r_DF] = aeromap_func_v2(front_RH, rear_RH, V_fts);
@@ -122,17 +152,17 @@ FZ_rr_s = (param.W * (1 - param.fwd) + r_DF/2)/2;
 
 %% Roll Rate Calculation
 
-K_WF_arb = 2*param.f_arb_k*(f_MR_arb)^2;              % Front wheel rate contributed by ARB [lbf/ft]
-K_WF = param.f_spring_k*(f_MR_spring)^2 + K_WF_arb;   % Front wheel rate [lbf/ft] 
-K_RF = (K_WF*param.tire_k)/(K_WF + param.tire_k);           % Front ride rate [lbf/ft]
-K_F = param.t_F^2*K_RF/2;                             % Front roll rate [lbf*ft/rad]             
-K_F_s = K_F - (param.l - a_s)*W_s*h2/param.l;               % Front roll rate of sprung mass [lbf*ft/rad]
+K_WF_arb = 2 * param.f_arb_k * (f_MR_arb)^2;              % Front wheel rate contributed by ARB [lbf/ft]
+K_WF = param.f_spring_k * (f_MR_spring)^2 + K_WF_arb;   % Front wheel rate [lbf/ft] 
+K_RF = (K_WF * param.tire_k)/(K_WF + param.tire_k);           % Front ride rate [lbf/ft]
+K_F = param.t_F^2 * K_RF/2;                             % Front roll rate [lbf*ft/rad]             
+K_F_s = K_F - (param.l - a_s) * W_s * h2/param.l;               % Front roll rate of sprung mass [lbf*ft/rad]
 
-K_WR_arb = 2*param.r_arb_k*(r_MR_arb)^2;
+K_WR_arb = 2 * param.r_arb_k * (r_MR_arb)^2;
 K_WR = param.r_spring_k * (r_MR_spring)^2 + K_WR_arb;   % same for rear
-K_RR = (K_WR*param.tire_k)/(K_WR + param.tire_k);               
-K_R = param.t_R^2*K_RR/2;
-K_R_s = K_R - a_s*W_s*h2/param.l;
+K_RR = (K_WR * param.tire_k)/(K_WR + param.tire_k);               
+K_R = param.t_R^2 * K_RR/2;
+K_R_s = K_R - a_s * W_s * h2/param.l;
 
 K_phi = K_F + K_R;                              % Total roll rate [lbf*ft/rad]
 roll_grad = rad2deg(-W_s*h2/(K_phi - W_s*h2));  % Current roll gradient [deg/g]
@@ -142,7 +172,7 @@ r_load_sensitivity = W_s*(h2*K_R_s/(K_phi - W_s*h2) + a_s*param.z_RR/param.l)/pa
 
 current_TLLTD = f_load_sensitivity/(f_load_sensitivity + r_load_sensitivity);      % get TLLTD
 
-%% Plot Yaw Moment Diagram
+%% Generate YMD Data
 
 % Obtain slip and steering angle information from base
 Beta = evalin('base', 'Beta');
@@ -167,6 +197,7 @@ for i = 1: length(Delta.range)
 
 end
 
+% Data acquisition
 for i = 1: length(Beta.range)
 
     % Body slip angle [rad]
@@ -186,7 +217,7 @@ for i = 1: length(Beta.range)
         r = 0;
         r_new = 0;
 
-        % Lateral acceleration (initially set to 0) [G]
+        % Lateral acceleration (initially set to 0) [~g]
         Ay = 0;
 
         while r_new == 0 || abs(r_new - r) > 1e-5
@@ -211,30 +242,30 @@ for i = 1: length(Beta.range)
             FZ_rr = (FZ_rr_s - dFz_r)*4.448;
 
             % Lateral forces on each tire
-            [~, fy_lf] = magicformula(tire_FY.mfparams, 0, alpha_lf, FZ_lf, IP_pa_f, IA_rad);
-            [~, ~, mz_lf] = magicformula(tire_MZ.mfparams, 0, alpha_lf, FZ_lf, IP_pa_f, IA_rad);
-            FY_lf = tireForceScale*fy_lf/4.448;
-            MZ_lf = tireForceScale*mz_lf*0.737562;
+            [~, fy_lf] = magicformula(param.tireData.FY.mfparams, 0, alpha_lf, FZ_lf, param.IP_f.pa, param.IA.rad);
+            [~, ~, mz_lf] = magicformula(param.tireData.MZ.mfparams, 0, alpha_lf, FZ_lf, param.IP_f.pa, param.IA.rad);
+            FY_lf = param.tireData.forceScale * fy_lf / 4.448;
+            MZ_lf = param.tireData.forceScale * mz_lf * 0.737562;
 
-            [~, fy_rf] = magicformula(tire_FY.mfparams, 0, alpha_rf, FZ_rf, IP_pa_f, IA_rad);
-            [~, ~, mz_rf] = magicformula(tire_MZ.mfparams, 0, alpha_rf, FZ_rf, IP_pa_f, IA_rad);
-            FY_rf = tireForceScale*fy_rf/4.448;
-            MZ_rf = tireForceScale*mz_rf*0.737562;
+            [~, fy_rf] = magicformula(param.tireData.FY.mfparams, 0, alpha_rf, FZ_rf, param.IP_f.pa, param.IA.rad);
+            [~, ~, mz_rf] = magicformula(param.tireData.MZ.mfparams, 0, alpha_rf, FZ_rf, param.IP_f.pa, param.IA.rad);
+            FY_rf = param.tireData.forceScale * fy_rf / 4.448;
+            MZ_rf = param.tireData.forceScale * mz_rf * 0.737562;
 
-            [~, fy_lr] = magicformula(tire_FY.mfparams, 0, alpha_lr, FZ_lr, IP_pa_r, IA_rad);
-            [~, ~, mz_lr] = magicformula(tire_MZ.mfparams, 0, alpha_lr, FZ_lr, IP_pa_r, IA_rad);
-            FY_lr = tireForceScale*fy_lr/4.448;
-            MZ_lr = tireForceScale*mz_lr*0.737562;
+            [~, fy_lr] = magicformula(param.tireData.FY.mfparams, 0, alpha_lr, FZ_lr, param.IP_r.pa, param.IA.rad);
+            [~, ~, mz_lr] = magicformula(param.tireData.MZ.mfparams, 0, alpha_lr, FZ_lr, param.IP_r.pa, param.IA.rad);
+            FY_lr = param.tireData.forceScale * fy_lr / 4.448;
+            MZ_lr = param.tireData.forceScale * mz_lr * 0.737562;
 
-            [~, fy_rr] = magicformula(tire_FY.mfparams, 0, alpha_rr, FZ_rr, IP_pa_r, IA_rad);
-            [~, ~, mz_rr] = magicformula(tire_MZ.mfparams, 0, alpha_rr, FZ_rr, IP_pa_r, IA_rad);
-            FY_rr = tireForceScale*fy_rr/4.448;
-            MZ_rr = tireForceScale*mz_rr*0.737562;
+            [~, fy_rr] = magicformula(param.tireData.FY.mfparams, 0, alpha_rr, FZ_rr, param.IP_r.pa, param.IA.rad);
+            [~, ~, mz_rr] = magicformula(param.tireData.MZ.mfparams, 0, alpha_rr, FZ_rr, param.IP_r.pa, param.IA.rad);
+            FY_rr = param.tireData.forceScale * fy_rr / 4.448;
+            MZ_rr = param.tireData.forceScale * mz_rr * 0.737562;
 
-            % Lateral acceleration [G]
+            % Lateral acceleration [g]
             Ay = (FY_lf*cos(delta_lf) + FY_lr + FY_rf*cos(delta_rf) + FY_rr)/param.W;
 
-            % New yaw rate (M_total = Izz*r?)
+            % New yaw rate
             r_new = Ay/Vx;
 
             % Total alignment torque [lbf*ft]
@@ -252,17 +283,7 @@ end
 Ay_deltaLines = Ay_betaLines';
 M_deltaLines = M_betaLines';
 
-% Export data
-assignin('base', 'Beta', Beta);
-assignin('base', 'Delta', Delta);
-assignin('base', 'Ay_betaLines', Ay_betaLines);
-assignin('base', 'M_betaLines', M_betaLines);
-assignin('base', 'Ay_deltaLines', Ay_deltaLines);
-assignin('base', 'M_deltaLines', M_deltaLines);
-
-%% Plot with Specified Range
-
-YMD = evalin('base', 'YMD');
+%% Plotting
 
 for YMDIndex = 1: length(Beta.range)
 
@@ -292,7 +313,6 @@ for YMDIndex = 1: length(Beta.range)
 
 end
 
-
 for i = Beta.lowerLimitIndex: Beta.upperLimitIndex
 
     for j = Delta.lowerLimitIndex: Delta.upperLimitIndex
@@ -303,33 +323,17 @@ for i = Beta.lowerLimitIndex: Beta.upperLimitIndex
         x2 = Ay_deltaLines(j, Beta.lowerLimitIndex: Beta.upperLimitIndex);
         y2 = M_deltaLines(j, Beta.lowerLimitIndex: Beta.upperLimitIndex);
 
-        p1 = plot(YMD, x1, y1, '-b'); hold(YMD, 'on');
-        p2 = plot(YMD, x2, y2, '-r');
+        p1 = plot(YMDSweep, x1, y1, '-b'); hold(YMDSweep, 'on');  
+        p2 = plot(YMDSweep, x2, y2, '-r');        
 
-        dt1 = p1.DataTipTemplate; 
-        dt1.DataTipRows(1) = dataTipTextRow('Slip Angle', rad2deg(Beta.range(i)*ones(size(x1)))); 
-        dt1.DataTipRows(2) = dataTipTextRow('Steering Angle', rad2deg(Delta.range)); 
-        dt1.DataTipRows(3) = dataTipTextRow('Lateral Accel', x1); 
-        dt1.DataTipRows(4)= dataTipTextRow('Yaw Moment', y1); 
-
-        dt2 = p2.DataTipTemplate;
-        dt2.DataTipRows(1) = dataTipTextRow('Slip Angle', rad2deg(Beta.range));
-        dt2.DataTipRows(2) = dataTipTextRow('Steering Angle', rad2deg(Delta.range(j)*ones(size(x2))));
-        dt2.DataTipRows(3) = dataTipTextRow('Lateral Accel', x2);
-        dt2.DataTipRows(4) = dataTipTextRow('Yaw Moment', y2);
+        YMDSweepPlots{sweptParamIndex} = vertcat(YMDSweepPlots{sweptParamIndex}, [p1, p2]);
 
     end
 
 end
 
-grid(YMD, 'on');
-xlabel(YMD, 'x');
-xlim(YMD, [-2.5, 2.5]);
-ylim(YMD, [-4000, 4000]);
-xlabel(YMD, 'Lateral Acceleration [G]');
-ylabel(YMD, 'Yaw Moment [lb*ft]');
-title(YMD, 'Yaw Moment Diagram');
-hold(YMD, 'off');
+assignin('caller', 'YMDSweepPlots', YMDSweepPlots);
 
-% End function
+% End of function
+
 end
