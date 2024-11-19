@@ -1,11 +1,11 @@
 %% Function: Make Sweep YMD Plot
 
-% Make multiple plots based on one selected varying parameter,
+% Make multiple YMD plots based on one selected varying parameter,
 % other parameters stays constant
 
-function sweptParamIndex = YMD_makeSweepPlot(progress)
+function sweptParamIndex = YMD_makeYMDSweep(progress)
 
-%% Program Setup
+%% Parameter Setup
 
 % Import parameters
 param = evalin('base', 'param');
@@ -28,32 +28,27 @@ param.f_arb_k = param.f_arb_k*12;       % [lb/in] to [lb/ft]
 param.r_arb_k = param.r_arb_k*12;       % [lb/in] to [lb/ft]
 param.CoP = param.CoP/100;              % [%] to none
 
-%% Sweep Setup
+%% Visual Setup
+
+YMDSweepAxes = evalin('base', 'YMDSweepAxes');
+
+% Clear axes
+cla(YMDSweepAxes);
 
 % Obtain swept parameter space
-sweepField.field1 = evalin('base', 'sweepField.field1');
-sweepField.field2 = evalin('base', 'sweepField.field2');
-sweepField.field3 = evalin('base', 'sweepField.field3');
-sweptParamMin = get(sweepField.field1, 'value');
-sweptParamMax = get(sweepField.field2, 'value');
-sweptNoPts = get(sweepField.field3, 'value');
-sweptParamSpace = linspace(sweptParamMin, sweptParamMax, sweptNoPts);
+sweepField = evalin('base', 'sweepField');
+sweep.lowerLimit = sweepField.field1.Value;
+sweep.upperLimit = sweepField.field2.Value;
+sweep.dataPts = sweepField.field3.Value;
+sweep.range = linspace(sweep.lowerLimit, sweep.upperLimit, sweep.dataPts);
 
 % Fill swept parameter space into the dropdown list
 sweptParamList = evalin("base", 'sweptParamList');
-sweptParamList.Items = string(sweptParamSpace);
+sweptParamList.Items = string(sweep.range);
 
 % Set up number of sweep plots
-YMDSweepPlots = cell(1, length(sweptParamSpace));
-
-% Switch sweep status
-sweepButton = evalin("base", 'sweepButton');
-if guidata(sweepButton) == 1
-
-    sweptParamSpace = evalin('base', 'sweptParamSpace');
-    guidata(sweepButton, 0);
-
-end
+YMDSweepPlots = cell(length(sweep.range), 3);
+assignin('base', 'YMDSweepPlots', YMDSweepPlots);
 
 % Find parameter to be swept
 sweptParam = evalin('base', 'sweptParam');
@@ -121,17 +116,14 @@ switch sweptParam.ValueIndex
 
 end
 
-YMDSweep = evalin('base', 'YMDSweep');
-
-
 %% Loop to Plot
 
-for sweptParamIndex = 1: length(sweptParamSpace)
+for sweptParamIndex = 1: length(sweep.range)
 
-    progress.Message = strcat("Plotting Figure ", string(sweptParamIndex), " of ", string(length(sweptParamSpace)), "...");
-    progress.Value = sweptParamIndex/length(sweptParamSpace);
+    progress.Message = strcat("Plotting Figure ", string(sweptParamIndex), " of ", string(length(sweep.range)), "...");
+    progress.Value = sweptParamIndex/length(sweep.range);
 
-    YMD_makeSinglePlotforSweep(param, sweptParam, sweptParamSpace, sweptParamIndex, YMDSweepPlots, YMDSweep);
+    YMD_makeSinglePlot4YMDSweep(param, sweptParam, sweep, sweptParamIndex);
     
 end
 
@@ -139,39 +131,42 @@ progress.Message = 'Finishing Up...';
 
 %% Plot Adjustments
 
-grid(YMDSweep, 'on');
-xlabel(YMDSweep, 'x');
-xlim(YMDSweep, [-2.5, 2.5]);
-ylim(YMDSweep, [-4000, 4000]);
-xlabel(YMDSweep, 'Lateral Acceleration [G]');
-ylabel(YMDSweep, 'Yaw Moment [lb*ft]');
-title(YMDSweep, 'Yaw Moment Diagram');
-hold(YMDSweep, 'off');
+grid(YMDSweepAxes, 'on');
+xlabel(YMDSweepAxes, 'Lateral Acceleration [G]');
+ylabel(YMDSweepAxes, 'Yaw Moment [lb*ft]');
+zlabel(YMDSweepAxes, 'Longitudinal Acceleration [G]')
+title(YMDSweepAxes, 'Yaw Moment Diagram');
+hold(YMDSweepAxes, 'off');
 
-%cellArray = cell(1922, 1);
-%cellArray{:} = deal('k');
-%[YMDSweepPlots{1}.Color] = deal('k');
+% Highlight the plot with first value of swept parameter
+YMDSweepPlots = evalin('base', 'YMDSweepPlots');
+set(YMDSweepPlots{1, 1}, 'color', 'r');
+set(YMDSweepPlots{1, 2}, 'color', 'b');
+set(YMDSweepPlots{1, 3}, 'color', 'k');
+uistack(YMDSweepPlots{1, 1}, 'top');
+uistack(YMDSweepPlots{1, 2}, 'top');
+uistack(YMDSweepPlots{1, 3}, 'top');
+if length(sweep.range) >= 2
 
-[YMDSweepPlots{1}(:, 1).Color] = deal('b');
-[YMDSweepPlots{1}(:, 2).Color] = deal('r');
-uistack(YMDSweepPlots{1}(:, 1), 'top');
-uistack(YMDSweepPlots{1}(:, 2), 'top');
-
-for i = 2: length(sweptParamSpace)
-
-    [YMDSweepPlots{i}.Color] = deal([0.8 0.8 0.8 0.05]);
+    for i = 2: length(sweep.range)
+    
+        set(YMDSweepPlots{i, 1}, 'color', [0.8 0.8 0.8 0.05]);
+        set(YMDSweepPlots{i, 2}, 'color', [0.8 0.8 0.8 0.05]);
+        set(YMDSweepPlots{i, 3}, 'color', [0.8 0.8 0.8 0.05]);
+    
+    end
 
 end
 
 % Switch to Sweep Plot tab
-tabGroup = evalin("base", 'tabGroup');
 tab = evalin("base", 'tab');
-tabGroup.SelectedTab = tab.sweepPlot;
+tabGroup = evalin("base", 'tabGroup');
+tabGroup.SelectedTab = tab.YMDSweep;
 
 %% Upload Plot Info
 
 assignin('base', 'YMDSweepPlots', YMDSweepPlots);
-assignin('base', 'sweptParamSpace', sweptParamSpace);
+assignin('base', 'sweep', sweep);
 assignin('base', 'sweptParamList', sweptParamList);
 
 % End of function

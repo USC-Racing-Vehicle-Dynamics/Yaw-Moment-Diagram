@@ -5,6 +5,7 @@ function YMD_updateParameters
 paramField = evalin('base', 'paramField');
 param =  evalin('base', 'param');
 paramUnit = evalin('base', 'paramUnit');
+rangeField = evalin('base', 'rangeField');
 
 % Mass [lb]
 param.W = paramField.W.Value;            
@@ -80,6 +81,35 @@ switch paramUnit.V.Value
         
 end
 
+% Slip angle range
+SA.lowerLimit = deg2rad(rangeField.SAField1.Value);
+SA.upperLimit = deg2rad(rangeField.SAField2.Value);
+SA.dataPts = rangeField.SAField3.Value;
+SA.range = linspace(SA.lowerLimit, SA.upperLimit, SA.dataPts);
+
+% Steering angle range
+Delta.lowerLimit = deg2rad(rangeField.deltaField1.Value);
+Delta.upperLimit = deg2rad(rangeField.deltaField2.Value);
+Delta.dataPts = rangeField.deltaField3.Value;
+Delta.range = linspace(Delta.lowerLimit, Delta.upperLimit, Delta.dataPts);
+
+% Slip ratio range
+SX.lowerLimit = rangeField.SXField1.Value;
+SX.upperLimit = rangeField.SXField2.Value;
+SX.dataPts = rangeField.SXField3.Value;
+SX.range = linspace(SX.lowerLimit, SX.upperLimit, SX.dataPts);
+
+% % Velocity range (GGV)
+% V.lowerLimit = rangeField.Vfield1.Value;
+% V.upperLimit = rangeField.Vfield2.Value;
+% V.dataPts = rangeField.Vfield3.Value;
+% V.range = linspace(V.lowerLimit, V.upperLimit, V.dataPts);
+
+%% Assign Data to Base Workspace
+
 assignin('base', 'param', param);
+assignin('base', 'SA', SA);
+assignin('base', 'Delta', Delta);
+assignin('base', 'SX', SX);
 
 end

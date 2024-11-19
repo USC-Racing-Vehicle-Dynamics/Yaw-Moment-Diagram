@@ -12,33 +12,41 @@ fig = uifigure;
 
 switch prompt
 
-    case 1 % Make single plot
+    case 1 % Make single YMD plot
     
         progress = uiprogressdlg(fig,'Title','YMD Single Plot','Indeterminate','on');
         progress.Message = 'Plotting...';
         drawnow
     
         YMD_updateParameters;
-        YMD_makeSinglePlot;
+        YMD_makeYMD;
     
-    case 2 % Make sweep plot
+    case 2 % Make YMD sweep plot
 
         progress = uiprogressdlg(fig,'Title','YMD Sweep Plot');
         progress.Message = 'Start Plotting...';
         drawnow
     
         YMD_updateParameters;
-        YMD_makeSweepPlot(progress);
+        YMD_makeYMDSweep(progress);
 
-    case 3 % Adjust plot ranges (single plot)
+    case 3 % Adjust plot views (single plot)
 
         progress = uiprogressdlg(fig,'Title','YMD Single Plot','Indeterminate','on');
-        progress.Message = 'Adjusting Plot Ranges...';
+        progress.Message = 'Adjusting Plot View...';
         drawnow
     
-        YMD_updatePlotRange;
+        YMD_adjustPlotView;
 
-    case 4 % Switch highlighted plot (sweep plot)
+    case 4 % Adjust isolines (single plot)
+
+        progress = uiprogressdlg(fig,'Title','YMD Single Plot','Indeterminate','on');
+        progress.Message = 'Adjusting Isolines...';
+        drawnow
+    
+        YMD_adjustIsolines;
+
+    case 5 % Switch highlighted plot (sweep plot)
 
         progress = uiprogressdlg(fig,'Title','YMD Sweep Plot','Indeterminate','on');
         progress.Message = 'Switching Highlighted Plot...';
@@ -46,13 +54,22 @@ switch prompt
     
         YMD_highlightSweepPlot;
 
-    case 5 % Export data (sweep plot)
+    case 6 % Export data (single plot)
 
         progress = uiprogressdlg(fig,'Title','YMD Single Plot','Indeterminate','on');
         progress.Message = 'Exporting Data...';
         drawnow
     
         YMD_exportData;
+
+    case 7 % Make GGV diagram
+
+        progress = uiprogressdlg(fig,'Title','GGV Diagram','Indeterminate','on');
+        progress.Message = 'Start Plotting...';
+        drawnow
+    
+        YMD_updateParameters;
+        YMD_makeGGV(progress);
 
 end
 
