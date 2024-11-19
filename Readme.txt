@@ -1,11 +1,14 @@
 Yaw Moment Diagram (GUI)
 
-Current Version: v5.3
+Current Version: v6.1
 
-Version Update:
-1. Minor upgrades on data structure
-2. Set input parameter limits
-3. Upgrade on sweep plot process dialog box
+New Features & Updates
+1) Allow plotting 3D diagrams (XYZ: y-acceleration, yaw moment, and x-acceleration)
+2) GGV Diagram available (XYZ: y-acceleration, x-acceleration, and velocity)
 
-To Run This Version:  Download every file within 'v5.3' folder, and run 'YMD_main.m' on MATLAB.
-For files within 'Fitted Data', you can download '43075_R20_16x7.5_FY0.mat' and '43075_R20_16x7.5_MZ0.mat' only
+Running instructions:  
+1) Download the zip file of this repository
+2) Unzip the file, and run 'YMD_main.m' script on MATLAB
+
+Note:
+1) Data exportation feature currently unavailable (may cause error)
