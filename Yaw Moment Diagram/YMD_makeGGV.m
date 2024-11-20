@@ -51,12 +51,13 @@ assignin('base', 'GGVPlots', GGVPlots);
 for sweptVIndex = 1: length(V.range)
 
     progress.Message = strcat("Plotting Figure ", string(sweptVIndex), " of ", string(length(V.range)), "...");
-    progress.Value = sweptVIndex/length(V.range);
+    progress.Value = (sweptVIndex - 1)/length(V.range);
 
     YMD_makeSinglePlot4GGV(param, V, sweptVIndex);
     
 end
 
+progress.Value = 1;
 progress.Message = 'Finishing Up...';
 
 %% Plot Adjustments

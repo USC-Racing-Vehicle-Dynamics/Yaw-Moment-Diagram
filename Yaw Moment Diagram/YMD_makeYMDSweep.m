@@ -121,12 +121,13 @@ end
 for sweptParamIndex = 1: length(sweep.range)
 
     progress.Message = strcat("Plotting Figure ", string(sweptParamIndex), " of ", string(length(sweep.range)), "...");
-    progress.Value = sweptParamIndex/length(sweep.range);
+    progress.Value = (sweptParamIndex - 1)/length(sweep.range);
 
     YMD_makeSinglePlot4YMDSweep(param, sweptParam, sweep, sweptParamIndex);
     
 end
 
+progress.Value = 1;
 progress.Message = 'Finishing Up...';
 
 %% Plot Adjustments

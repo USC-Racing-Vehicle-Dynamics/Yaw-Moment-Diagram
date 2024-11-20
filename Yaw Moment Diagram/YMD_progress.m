@@ -64,7 +64,7 @@ switch prompt
 
     case 7 % Make GGV diagram
 
-        progress = uiprogressdlg(fig,'Title','GGV Diagram','Indeterminate','on');
+        progress = uiprogressdlg(fig,'Title','GGV Diagram');
         progress.Message = 'Start Plotting...';
         drawnow
     
