@@ -12,3 +12,4 @@ Running instructions:
 
 Note:
 1) Data exportation feature currently unavailable (may cause error)
+2) Post processor currently unavailable
