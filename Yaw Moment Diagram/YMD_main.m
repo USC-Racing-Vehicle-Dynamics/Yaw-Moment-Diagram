@@ -1,5 +1,7 @@
 %% Yaw Moment Diagram (v6.1)
 
+% Demo update script
+
 %% Clear
 
 clear, clc, close all;
