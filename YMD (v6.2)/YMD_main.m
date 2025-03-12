@@ -489,35 +489,29 @@ lineSelect.SXLine.ValueChangedFcn = @(src, event) YMD_progress(4);
 
 %% Single Plot Tab: Export Data
 
-%--------------------------*
-% Push Button: Export Data |
-%--------------------------*
-exportPlotButton = uibutton(tab.YMD, 'Position', [550 35 200 22]);
-exportPlotButton.Text = 'Export Data Files';
-exportPlotButton.ButtonPushedFcn = @(src, event) YMD_progress(61);
+heading.exportData = uilabel(tab.YMD);
+heading.exportData.Position = [550 150 100 22];
+heading.exportData.Text = '\fontname{Arial}\bfExport Data';
+heading.exportData.Interpreter = 'tex';
 
 %-----------------------------------*
 % Text Edit Field: Export Data Info |
 %-----------------------------------*
-exportField.field1 = uieditfield(tab.YMD, 'Position', [550 125 165 22]);
-exportField.field1.Value = 'LateralAcceleration';
-exportField.field1.HorizontalAlignment = 'right';
+exportField.field = uieditfield(tab.YMD);
+exportField.field.Position = [heading.exportData.Position(1) heading.exportData.Position(2)-25 165 22];
+exportField.field.Value = 'YMD_singlePlot';
+exportField.field.HorizontalAlignment = 'right';
 
-exportField.field2 = uieditfield(tab.YMD, 'Position', [550 75 165 22]);
-exportField.field2.Value = 'YawMoment';
-exportField.field2.HorizontalAlignment = 'right';
+exportLbl.lbl = uilabel(tab.YMD, 'Position', [720 125 30 22]);
+exportLbl.lbl.Text = '.mat';
 
-exportLbl.lbl1 = uilabel(tab.YMD, 'Position', [550 150 200 22]);
-exportLbl.lbl1.Text = 'Lateral Acceleration Data File';
-
-exportLbl.lbl2 = uilabel(tab.YMD, 'Position', [720 125 30 22]);
-exportLbl.lbl2.Text = '.mat';
-
-exportLbl.lbl3 = uilabel(tab.YMD, 'Position', [550 100 200 22]);
-exportLbl.lbl3.Text = 'Yaw Moment Data File';
-
-exportLbl.lbl4 = uilabel(tab.YMD, 'Position', [720 75 30 22]);
-exportLbl.lbl4.Text = '.mat';
+%--------------------------*
+% Push Button: Export Data |
+%--------------------------*
+exportPlotButton = uibutton(tab.YMD);
+exportPlotButton.Position = [heading.exportData.Position(1) exportField.field.Position(2)-35 200 22];
+exportPlotButton.Text = 'Export Data File';
+exportPlotButton.ButtonPushedFcn = @(src, event) YMD_progress(61);
 
 %% YMD Sweep Tab: Highlight Selected Plot
 
@@ -549,7 +543,7 @@ exportButton_sweep.ButtonPushedFcn = @(src, event) YMD_progress(62);
 % Text Edit Field: Export Data Info |
 %-----------------------------------*
 exportField_sweep.field1 = uieditfield(tab.YMDSweep, 'Position', [550 125 165 22]);
-exportField_sweep.field1.Value = 'LateralAcceleration';
+exportField_sweep.field1.Value = 'YMD_SweepPlots';
 exportField_sweep.field1.HorizontalAlignment = 'right';
 
 exportField_sweep.field2 = uieditfield(tab.YMDSweep, 'Position', [550 75 165 22]);
