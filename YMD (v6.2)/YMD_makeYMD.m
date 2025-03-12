@@ -136,9 +136,9 @@ SA = evalin('base', 'SA');
 Delta = evalin('base', 'Delta');
 
 % Spaces to store data
-AxData.full = zeros(length(SA.range), length(Delta.range), length(SX.range));
-AyData.full = zeros(length(SA.range), length(Delta.range), length(SX.range));
-MData.full = zeros(length(SA.range), length(Delta.range), length(SX.range));
+AxData = zeros(length(SA.range), length(Delta.range), length(SX.range));
+AyData = zeros(length(SA.range), length(Delta.range), length(SX.range));
+MData = zeros(length(SA.range), length(Delta.range), length(SX.range));
 
 % Spaces to store left & right front steering angles
 delta_lf_space1 = zeros(length(Delta.range), 1);
@@ -239,9 +239,9 @@ for z = 1: length(SX.range)
             MZ = MZ_lf + MZ_rf + MZ_lr + MZ_rr;
             
             
-            AxData.full(x, y, z) = Ax;
-            AyData.full(x, y, z) = Ay;       
-            MData.full(x, y, z) = (FY_lf*cos(delta_lf) + FY_rf*cos(delta_rf))*a + ...
+            AxData(x, y, z) = Ax;
+            AyData(x, y, z) = Ay;       
+            MData(x, y, z) = (FY_lf*cos(delta_lf) + FY_rf*cos(delta_rf))*a + ...
                 (FY_rf*sin(delta_rf) - FY_lf*sin(delta_lf))*param.t_F/2 - (FY_lr + FY_rr)*b + MZ;
         
         end
@@ -270,9 +270,9 @@ for y = 1: length(Delta.range)
 
     for z = 1: length(SX.range)
 
-        Ay_SALine = squeeze(AyData.full(1: length(SA.range), y, z));
-        M_SALine = squeeze(MData.full(1: length(SA.range), y, z));
-        Ax_SALine = squeeze(AxData.full(1: length(SA.range), y, z));
+        Ay_SALine = squeeze(AyData(1: length(SA.range), y, z));
+        M_SALine = squeeze(MData(1: length(SA.range), y, z));
+        Ax_SALine = squeeze(AxData(1: length(SA.range), y, z));
 
         YMDPlot.SA = plot3(YMDAxes, Ay_SALine, M_SALine, Ax_SALine, '-r');
         hold(YMDAxes, 'on');
@@ -295,9 +295,9 @@ for x = 1: length(SA.range)
 
     for z = 1: length(SX.range)
 
-        Ay_deltaLine = squeeze(AyData.full(x, 1: length(Delta.range), z));
-        M_deltaLine = squeeze(MData.full(x, 1: length(Delta.range), z));
-        Ax_deltaLine = squeeze(AxData.full(x, 1: length(Delta.range), z));
+        Ay_deltaLine = squeeze(AyData(x, 1: length(Delta.range), z));
+        M_deltaLine = squeeze(MData(x, 1: length(Delta.range), z));
+        Ax_deltaLine = squeeze(AxData(x, 1: length(Delta.range), z));
 
         YMDPlot.delta = plot3(YMDAxes, Ay_deltaLine, M_deltaLine, Ax_deltaLine, '-b');
 
@@ -319,9 +319,9 @@ for x = 1: length(SA.range)
 
     for y = 1: length(Delta.range)
 
-        Ay_SXLine = squeeze(AyData.full(x, y, 1: length(SX.range)));
-        M_SXLine = squeeze(MData.full(x, y, 1: length(SX.range)));
-        Ax_SXLine = squeeze(AxData.full(x, y, 1: length(SX.range)));
+        Ay_SXLine = squeeze(AyData(x, y, 1: length(SX.range)));
+        M_SXLine = squeeze(MData(x, y, 1: length(SX.range)));
+        Ax_SXLine = squeeze(AxData(x, y, 1: length(SX.range)));
 
         YMDPlot.SX = plot3(YMDAxes, Ay_SXLine, M_SXLine, Ax_SXLine, '-k'); 
 
