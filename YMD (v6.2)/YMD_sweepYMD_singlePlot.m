@@ -219,17 +219,9 @@ for z = 1: length(SX.range)
             delta_lf = delta_lf_space1(y);
             delta_rf = delta_rf_space1(y);
     
-            % % Yaw rate (initially set to 0) [rad/s]
-            % r = 0;
-            % r_new = 0;
-    
             % Lateral acceleration (initially set to 0) [~g]
             Ay = 0;
-    
-                
-            % % Update yaw rate
-            % r = r_new;
-
+  
             % Slip angles on each tire [rad]
             alpha_lf = Vy/Vx - delta_lf + param.toe_f;
             alpha_rf = Vy/Vx - delta_rf - param.toe_f;
@@ -276,9 +268,6 @@ for z = 1: length(SX.range)
 
             % Lateral acceleration [g]
             Ay = (FY_lf*cos(delta_lf) + FY_lr + FY_rf*cos(delta_rf) + FY_rr)/param.W;
-
-            % % New yaw rate
-            % r_new = Ay/Vx;
 
             % Total alignment torque [lbf*ft]
             MZ = MZ_lf + MZ_rf + MZ_lr + MZ_rr;
