@@ -54,67 +54,71 @@ assignin('base', 'YMDSweepPlots', YMDSweepPlots);
 sweptParam = evalin('base', 'sweptParam');
 
 % Show parameter to sweep
-sweepInfoLbl2 = evalin("base", 'sweepInfoLbl2');
+sweepInfoLbl = evalin("base", 'sweepInfoLbl2');
 switch sweptParam.ValueIndex
 
     case 1
-        sweepInfoLbl2.Text = 'Mass';
+        sweepInfoLbl.Text = 'Mass';
 
     case 2
-        sweepInfoLbl2.Text = 'Front Weight Distribution';
+        sweepInfoLbl.Text = 'Front Weight Distribution';
 
     case 3
-        sweepInfoLbl2.Text = 'Wheelbase';
+        sweepInfoLbl.Text = 'Wheelbase';
 
     case 4
-        sweepInfoLbl2.Text = 'Front Track Width';
+        sweepInfoLbl.Text = 'Front Track Width';
 
     case 5
-        sweepInfoLbl2.Text = 'Rear Track Width';
+        sweepInfoLbl.Text = 'Rear Track Width';
 
     case 6
-        sweepInfoLbl2.Text = 'CG Height';
+        sweepInfoLbl.Text = 'CG Height';
 
     case 7
-        sweepInfoLbl2.Text = 'Front Roll Center Height';
+        sweepInfoLbl.Text = 'Front Roll Center Height';
 
     case 8
-        sweepInfoLbl2.Text = 'Rear Roll Center Height';
+        sweepInfoLbl.Text = 'Rear Roll Center Height';
 
     case 9
-        sweepInfoLbl2.Text = 'Ackermann';
+        sweepInfoLbl.Text = 'Ackermann';
 
     case 10
-        sweepInfoLbl2.Text = 'Front Toe';
+        sweepInfoLbl.Text = 'Front Toe';
 
     case 11
-        sweepInfoLbl2.Text = 'Rear Toe';
+        sweepInfoLbl.Text = 'Rear Toe';
 
     case 12
-        sweepInfoLbl2.Text = 'Tire Spring Rate';
+        sweepInfoLbl.Text = 'Tire Spring Rate';
 
     case 13
-        sweepInfoLbl2.Text = 'Front Spring Stiffness';
+        sweepInfoLbl.Text = 'Front Spring Stiffness';
 
     case 14
-        sweepInfoLbl2.Text = 'Rear Spring Stiffness';
+        sweepInfoLbl.Text = 'Rear Spring Stiffness';
 
     case 15
-        sweepInfoLbl2.Text = 'Front ARB Stiffness';
+        sweepInfoLbl.Text = 'Front ARB Stiffness';
 
     case 16
-        sweepInfoLbl2.Text = 'Rear ARB Stiffness';
+        sweepInfoLbl.Text = 'Rear ARB Stiffness';
 
     case 17
-        sweepInfoLbl2.Text = 'Coefficient of Lift';
+        sweepInfoLbl.Text = 'Coefficient of Lift';
 
     case 18
-        sweepInfoLbl2.Text = 'Center of Pressure';
+        sweepInfoLbl.Text = 'Center of Pressure';
 
     case 19
-        sweepInfoLbl2.Text = 'Velocity [mph]';
+        sweepInfoLbl.Text = 'Velocity [mph]';
 
 end
+
+% 
+sweptParamInfo.name = sweepInfoLbl.Text;
+sweptParamInfo.value = sweep.range;
 
 %% Loop to Plot
 
@@ -135,6 +139,7 @@ for sweptParamIndex = 1: length(sweep.range)
 end
 
 % Export Data
+assignin('base', 'sweptParamInfo', sweptParamInfo);
 assignin('base', 'AxSweepData', AxSweepData);
 assignin('base', 'AySweepData', AySweepData);
 assignin('base', 'MSweepData', MSweepData);
