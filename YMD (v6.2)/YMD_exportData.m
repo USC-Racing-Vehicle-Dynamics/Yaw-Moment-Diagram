@@ -11,32 +11,39 @@ SX = evalin('base', 'SX');
 % Obtain YMD data
 switch prompt
 
-    % From single plot
+    % Export from single plot
     case 1
         Ax = evalin('base', 'AxData');
         Ay = evalin('base', 'AyData');
         M = evalin('base', 'MData');
 
-        exportField = evalin('base', 'exportField');
+        cd ..
         folderName = 'YMD Results';
+        status = mkdir(folderName);
+        
+        % Save as .mat File
+        exportField = evalin('base', 'exportField');
+        fileName = get(exportField.field, 'value');
+        save(folderName + "/" + fileName + ".mat", 'param', 'SA', 'Delta', 'SX', 'Ax', 'Ay', 'M');
 
-    % From sweep plot
+    % Export from sweep plot
     case 2
+
         Ax = evalin('base', 'AxSweepData');
         Ay = evalin('base', 'AySweepData');
         M = evalin('base', 'MSweepData');
-        exportField = evalin('base', 'exportField_sweep');
+        sweptParameter = evalin('base', 'sweptParamInfo');
 
+        cd ..
         folderName = 'YMD Sweep Results';
+        status = mkdir(folderName);
+        
+        % Save as .mat File
+        exportField = evalin('base', 'exportField_sweep');
+        fileName = get(exportField.field, 'value');
+        save(folderName + "/" + fileName + ".mat", 'param', 'sweptParameter', 'SA', 'Delta', 'SX', 'Ax', 'Ay', 'M');
 
 end
-
-cd ..
-status = mkdir(folderName);
-
-% Save as .mat File
-fileName = get(exportField.field, 'value');
-save(folderName + "/" + fileName + ".mat", 'param', 'SA', 'Delta', 'SX', 'Ax', 'Ay', 'M');
 
 end
 
