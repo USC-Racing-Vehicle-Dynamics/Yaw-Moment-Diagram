@@ -532,35 +532,29 @@ sweptParamList.ValueChangedFcn = @(src, event) YMD_progress(5);
 
 %% YMD Sweep Tab: Export Data
 
-%--------------------------*
-% Push Button: Export Data |
-%--------------------------*
-exportButton_sweep = uibutton(tab.YMDSweep, 'Position', [550 35 200 22]);
-exportButton_sweep.Text = 'Export Data Files';
-exportButton_sweep.ButtonPushedFcn = @(src, event) YMD_progress(62);
+heading.exportSweepData = uilabel(tab.YMDSweep);
+heading.exportSweepData.Position = [550 150 100 22];
+heading.exportSweepData.Text = '\fontname{Arial}\bfExport Data';
+heading.exportSweepData.Interpreter = 'tex';
 
 %-----------------------------------*
 % Text Edit Field: Export Data Info |
 %-----------------------------------*
-exportField_sweep.field1 = uieditfield(tab.YMDSweep, 'Position', [550 125 165 22]);
-exportField_sweep.field1.Value = 'YMD_SweepPlots';
-exportField_sweep.field1.HorizontalAlignment = 'right';
+exportField_sweep.field = uieditfield(tab.YMDSweep);
+exportField_sweep.field.Position = [heading.exportSweepData.Position(1) heading.exportSweepData.Position(2)-25 165 22];
+exportField_sweep.field.Value = 'YMD_sweepPlots';
+exportField_sweep.field.HorizontalAlignment = 'right';
 
-exportField_sweep.field2 = uieditfield(tab.YMDSweep, 'Position', [550 75 165 22]);
-exportField_sweep.field2.Value = 'YawMoment';
-exportField_sweep.field2.HorizontalAlignment = 'right';
+exportLbl_sweep.lbl = uilabel(tab.YMDSweep, 'Position', [720 125 30 22]);
+exportLbl_sweep.lbl.Text = '.mat';
 
-exportLbl_sweep.lbl1 = uilabel(tab.YMDSweep, 'Position', [550 150 200 22]);
-exportLbl_sweep.lbl1.Text = 'Lateral Acceleration Data File';
-
-exportLbl_sweep.lbl2 = uilabel(tab.YMDSweep, 'Position', [720 125 30 22]);
-exportLbl_sweep.lbl2.Text = '.mat';
-
-exportLbl_sweep.lbl3 = uilabel(tab.YMDSweep, 'Position', [550 100 200 22]);
-exportLbl_sweep.lbl3.Text = 'Yaw Moment Data File';
-
-exportLbl_sweep.lbl4 = uilabel(tab.YMDSweep, 'Position', [720 75 30 22]);
-exportLbl_sweep.lbl4.Text = '.mat';
+%--------------------------*
+% Push Button: Export Data |
+%--------------------------*
+exportButton_sweep = uibutton(tab.YMDSweep);
+exportButton_sweep.Position = [heading.exportSweepData.Position(1) exportField_sweep.field.Position(2)-35 200 22];
+exportButton_sweep.Text = 'Export Data File';
+exportButton_sweep.ButtonPushedFcn = @(src, event) YMD_progress(62);
 
 %% GGV Tab
 
