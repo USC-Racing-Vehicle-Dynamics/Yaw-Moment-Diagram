@@ -2,14 +2,23 @@
 % Export data to a .mat file
 function YMD_exportData(prompt)
 
-% Obtain data
+% Obtain vehicle parameters & YMD inputs
+param = evalin('base', 'param');
+SA = evalin('base', 'SA');
+Delta = evalin('base', 'Delta');
+SX = evalin('base', 'SX');
+
+% Obtain YMD data
 switch prompt
 
+    % From single plot
     case 1
-        Ay = evalin('base', 'Ay_SALines');
-        M = evalin('base', 'M_SALines');
+        Ax = evalin('base', 'AxData');
+        Ay = evalin('base', 'AyData');
+        M = evalin('base', 'MData');
         exportField = evalin('base', 'exportField');
 
+    % From sweep plot
     case 2
         Ay = evalin('base', 'AySweepData');
         M = evalin('base', 'MSweepData');
@@ -17,14 +26,12 @@ switch prompt
 
 end
 
-% Save as .mat File
-% Lateral acceleration data file
-fileName1 = strcat(get(exportField.field1, 'value'), '.mat');
-save(fileName1, "Ay");
+cd ..
+mkdir 'YMD Results'
 
-% Yaw moment data file
-fileName2 = strcat(get(exportField.field2, 'value'), '.mat');
-save(fileName2, "M");
+% Save as .mat File
+fileName = get(exportField.field, 'value');
+save("YMD Results/" + fileName + ".mat", 'param', 'SA', 'Delta', 'SX', 'Ax', 'Ay', 'M');
 
 end
 
