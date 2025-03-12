@@ -16,22 +16,27 @@ switch prompt
         Ax = evalin('base', 'AxData');
         Ay = evalin('base', 'AyData');
         M = evalin('base', 'MData');
+
         exportField = evalin('base', 'exportField');
+        folderName = 'YMD Results';
 
     % From sweep plot
     case 2
+        Ax = evalin('base', 'AxSweepData');
         Ay = evalin('base', 'AySweepData');
         M = evalin('base', 'MSweepData');
-        exportField = evalin('base', 'exportField');
+        exportField = evalin('base', 'exportField_sweep');
+
+        folderName = 'YMD Sweep Results';
 
 end
 
 cd ..
-mkdir 'YMD Results'
+status = mkdir(folderName);
 
 % Save as .mat File
 fileName = get(exportField.field, 'value');
-save("YMD Results/" + fileName + ".mat", 'param', 'SA', 'Delta', 'SX', 'Ax', 'Ay', 'M');
+save(folderName + "/" + fileName + ".mat", 'param', 'SA', 'Delta', 'SX', 'Ax', 'Ay', 'M');
 
 end
 
