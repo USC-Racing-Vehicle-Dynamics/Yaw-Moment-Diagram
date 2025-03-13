@@ -175,24 +175,24 @@ current_TLLTD = f_load_sensitivity/(f_load_sensitivity + r_load_sensitivity);   
 %% Generate YMD Data
 
 % Obtain slip and steering angle information from base
-SX = evalin('base', 'SX');
-SA = evalin('base', 'SA');
-Delta = evalin('base', 'Delta');
+SX = evalin('base', 'SX_rad_range');
+SA = evalin('base', 'SA_rad_range');
+Delta = evalin('base', 'Delta_rad_range');
 
 % Spaces to store angular velocity & yaw moment
-AxSweepData = zeros(length(SA.range), length(Delta.range), length(SX.range));
-AySweepData = zeros(length(SA.range), length(Delta.range));
-MSweepData = zeros(length(SA.range), length(Delta.range));
+AxSweepData = zeros(length(SA), length(Delta), length(SX));
+AySweepData = zeros(length(SA), length(Delta));
+MSweepData = zeros(length(SA), length(Delta));
 
 % Spaces to store left & right front steering angles
-delta_lf_space1 = zeros(length(Delta.range), 1);
-delta_rf_space1 = zeros(length(Delta.range), 1);
+delta_lf_space1 = zeros(length(Delta), 1);
+delta_rf_space1 = zeros(length(Delta), 1);
 
 % Calculate Ackermann geometry effect on front steering angles
-for i = 1: length(Delta.range)
+for i = 1: length(Delta)
 
     % Steering angle [rad]
-    delta = Delta.range(i);
+    delta = Delta(i);
 
     % Solve for the Ackermann steering angles
     [delta_lf_space1(i), delta_rf_space1(i)] = AckermannSolver(param.ackermann, delta, param.t_F, param.l);
@@ -200,20 +200,20 @@ for i = 1: length(Delta.range)
 end
 
 % Data acquisition
-for z = 1: length(SX.range)
+for z = 1: length(SX)
 
-    sx = SX.range(z);
+    sx = SX(z);
 
-    for x = 1: length(SA.range)
+    for x = 1: length(SA)
     
         % Body slip angle [rad]
-        beta = SA.range(x);
+        beta = SA(x);
     
         % Longitudinal and lateral speeds
         Vx = param.V.fts * cos(beta);
         Vy = param.V.fts * sin(beta);
     
-        for y = 1: length(Delta.range)
+        for y = 1: length(Delta)
     
             % Steering angles split on each front tire [rad]
             delta_lf = delta_lf_space1(y);
@@ -284,32 +284,27 @@ for z = 1: length(SX.range)
 
 end
 
-% Export data
-assignin('base', 'SX', SX);
-assignin('base', 'SA', SA);
-assignin('base', 'Delta', Delta);
-
 %% Plot by Rearranging Data
 
 YMDSweepAxes = evalin('base', 'YMDSweepAxes');
 
 % Plot slip angle isolines
-for y = 1: length(Delta.range)
+for y = 1: length(Delta)
 
-    for z = 1: length(SX.range)
+    for z = 1: length(SX)
 
-        Ay_SALine = squeeze(AySweepData(1: length(SA.range), y, z));
-        M_SALine = squeeze(MSweepData(1: length(SA.range), y, z));
-        Ax_SALine = squeeze(AxSweepData(1: length(SA.range), y, z));
+        Ay_SALine = squeeze(AySweepData(1: length(SA), y, z));
+        M_SALine = squeeze(MSweepData(1: length(SA), y, z));
+        Ax_SALine = squeeze(AxSweepData(1: length(SA), y, z));
 
         YMDSweepPlot.SA = plot3(YMDSweepAxes, Ay_SALine, M_SALine, Ax_SALine, '-r');
         hold(YMDSweepAxes, 'on');
 
         % Data tip setup
         dt1 = YMDSweepPlot.SA.DataTipTemplate;
-        dt1.DataTipRows(1) = dataTipTextRow('Slip Angle', rad2deg(SA.range)); 
-        dt1.DataTipRows(2) = dataTipTextRow('Steering Angle', rad2deg(Delta.range(y) * ones(size(1: length(SA.range)))));
-        dt1.DataTipRows(3) = dataTipTextRow('Slip Ratio', SX.range(z) * ones(size(1: length(SA.range)))); 
+        dt1.DataTipRows(1) = dataTipTextRow('Slip Angle', rad2deg(SA)); 
+        dt1.DataTipRows(2) = dataTipTextRow('Steering Angle', rad2deg(Delta(y) * ones(size(1: length(SA)))));
+        dt1.DataTipRows(3) = dataTipTextRow('Slip Ratio', SX(z) * ones(size(1: length(SA)))); 
         dt1.DataTipRows(4) = dataTipTextRow('X Accel', Ax_SALine); 
         dt1.DataTipRows(5) = dataTipTextRow('Y Accel', Ay_SALine); 
         dt1.DataTipRows(6) = dataTipTextRow('Yaw Moment', M_SALine);
@@ -322,21 +317,21 @@ for y = 1: length(Delta.range)
 end
 
 % Plot steering angle isolines
-for x = 1: length(SA.range)
+for x = 1: length(SA)
 
-    for z = 1: length(SX.range)
+    for z = 1: length(SX)
 
-        Ay_deltaLine = squeeze(AySweepData(x, 1: length(Delta.range), z));
-        M_deltaLine = squeeze(MSweepData(x, 1: length(Delta.range), z));
-        Ax_deltaLine = squeeze(AxSweepData(x, 1: length(Delta.range), z));
+        Ay_deltaLine = squeeze(AySweepData(x, 1: length(Delta), z));
+        M_deltaLine = squeeze(MSweepData(x, 1: length(Delta), z));
+        Ax_deltaLine = squeeze(AxSweepData(x, 1: length(Delta), z));
 
         YMDSweepPlot.delta = plot3(YMDSweepAxes, Ay_deltaLine, M_deltaLine, Ax_deltaLine, '-b');
 
         % Data tip setup
         dt2 = YMDSweepPlot.delta.DataTipTemplate;
-        dt2.DataTipRows(1) = dataTipTextRow('Slip Angle', rad2deg(SA.range(x) * ones(size(1: length(Delta.range))))); 
-        dt2.DataTipRows(2) = dataTipTextRow('Steering Angle', rad2deg(Delta.range));
-        dt2.DataTipRows(3) = dataTipTextRow('Slip Ratio', SX.range(z) * ones(size(1: length(Delta.range)))); 
+        dt2.DataTipRows(1) = dataTipTextRow('Slip Angle', rad2deg(SA(x) * ones(size(1: length(Delta))))); 
+        dt2.DataTipRows(2) = dataTipTextRow('Steering Angle', rad2deg(Delta));
+        dt2.DataTipRows(3) = dataTipTextRow('Slip Ratio', SX(z) * ones(size(1: length(Delta)))); 
         dt2.DataTipRows(4) = dataTipTextRow('X Accel', Ax_deltaLine); 
         dt2.DataTipRows(5) = dataTipTextRow('Y Accel', Ay_deltaLine); 
         dt2.DataTipRows(6) = dataTipTextRow('Yaw Moment', M_deltaLine);
@@ -349,21 +344,21 @@ for x = 1: length(SA.range)
 end
 
 % Plot slip ratio isolines
-for x = 1: length(SA.range)
+for x = 1: length(SA)
 
-    for y = 1: length(Delta.range)
+    for y = 1: length(Delta)
 
-        Ay_SXLine = squeeze(AySweepData(x, y, 1: length(SX.range)));
-        M_SXLine = squeeze(MSweepData(x, y, 1: length(SX.range)));
-        Ax_SXLine = squeeze(AxSweepData(x, y, 1: length(SX.range)));
+        Ay_SXLine = squeeze(AySweepData(x, y, 1: length(SX)));
+        M_SXLine = squeeze(MSweepData(x, y, 1: length(SX)));
+        Ax_SXLine = squeeze(AxSweepData(x, y, 1: length(SX)));
 
         YMDSweepPlot.SX = plot3(YMDSweepAxes, Ay_SXLine, M_SXLine, Ax_SXLine, '-k'); 
 
         % Data tip setup
         dt3 = YMDSweepPlot.SX.DataTipTemplate;
-        dt3.DataTipRows(1) = dataTipTextRow('Slip Angle', rad2deg(SA.range(x) * ones(size(1: length(SX.range))))); 
-        dt3.DataTipRows(2) = dataTipTextRow('Steering Angle', rad2deg(Delta.range(y) * ones(size(1: length(SX.range)))));
-        dt3.DataTipRows(3) = dataTipTextRow('Slip Ratio', SX.range); 
+        dt3.DataTipRows(1) = dataTipTextRow('Slip Angle', rad2deg(SA(x) * ones(size(1: length(SX))))); 
+        dt3.DataTipRows(2) = dataTipTextRow('Steering Angle', rad2deg(Delta(y) * ones(size(1: length(SX)))));
+        dt3.DataTipRows(3) = dataTipTextRow('Slip Ratio', SX); 
         dt3.DataTipRows(4) = dataTipTextRow('X Accel', Ax_deltaLine); 
         dt3.DataTipRows(5) = dataTipTextRow('Y Accel', Ay_deltaLine); 
         dt3.DataTipRows(6) = dataTipTextRow('Yaw Moment', M_deltaLine); 
