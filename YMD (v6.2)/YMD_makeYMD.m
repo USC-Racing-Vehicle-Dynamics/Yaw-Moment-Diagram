@@ -131,24 +131,24 @@ current_TLLTD = f_load_sensitivity/(f_load_sensitivity + r_load_sensitivity);   
 %% Plot Yaw Moment Diagram
 
 % Obtain wheel inputs from base
-SX = evalin('base', 'SX');
-SA = evalin('base', 'SA');
-Delta = evalin('base', 'Delta');
+SX = evalin('base', 'SX_rad_range');
+SA = evalin('base', 'SA_rad_range');
+Delta = evalin('base', 'Delta_rad_range');
 
 % Spaces to store data
-AxData = zeros(length(SA.range), length(Delta.range), length(SX.range));
-AyData = zeros(length(SA.range), length(Delta.range), length(SX.range));
-MData = zeros(length(SA.range), length(Delta.range), length(SX.range));
+AxData = zeros(length(SA), length(Delta), length(SX));
+AyData = zeros(length(SA), length(Delta), length(SX));
+MData = zeros(length(SA), length(Delta), length(SX));
 
 % Spaces to store left & right front steering angles
-delta_lf_space1 = zeros(length(Delta.range), 1);
-delta_rf_space1 = zeros(length(Delta.range), 1);
+delta_lf_space1 = zeros(length(Delta), 1);
+delta_rf_space1 = zeros(length(Delta), 1);
 
 % Calculate Ackermann geometry effect on front steering angles
-for i = 1: length(Delta.range)
+for i = 1: length(Delta)
 
     % Steering angle [rad]
-    delta = Delta.range(i);
+    delta = Delta(i);
 
     % Solve for the Ackermann steering angles
     [delta_lf_space1(i), delta_rf_space1(i)] = AckermannSolver(param.ackermann, delta, param.t_F, param.l);
@@ -156,34 +156,27 @@ for i = 1: length(Delta.range)
 end
 
 % Data acquisition
-for z = 1: length(SX.range)
+for z = 1: length(SX)
 
-    sx = SX.range(z);
+    sx = SX(z);
 
-    for x = 1: length(SA.range)
+    for x = 1: length(SA)
     
         % Body slip angle [rad]
-        beta = SA.range(x);
+        beta = SA(x);
         
         % Longitudinal and lateral speeds
         Vx = param.V.fts * cos(beta);
         Vy = param.V.fts * sin(beta);
     
-        for y = 1: length(Delta.range)
+        for y = 1: length(Delta)
         
             % Steering angles split on each front tire [rad]
             delta_lf = delta_lf_space1(y);
             delta_rf = delta_rf_space1(y);
-            
-            % % Yaw rate (initially set to 0) [rad/s]
-            % r = 0;
-            % r_new = 0;
-            
+
             % Lateral acceleration (initially set to 0) [G]
             Ay = 0;
-                        
-            % % Update yaw rate
-            % r = r_new;
             
             % Slip angles on each tire [rad]
             alpha_lf = Vy/Vx - delta_lf + param.toe_f;
@@ -236,8 +229,7 @@ for z = 1: length(SX.range)
             % r_new = Ay/Vx;
             
             % Total alignment torque [lbf*ft]
-            MZ = MZ_lf + MZ_rf + MZ_lr + MZ_rr;
-            
+            MZ = MZ_lf + MZ_rf + MZ_lr + MZ_rr;            
             
             AxData(x, y, z) = Ax;
             AyData(x, y, z) = Ay;       
@@ -251,9 +243,6 @@ for z = 1: length(SX.range)
 end
 
 % Export data
-assignin('base', 'SX', SX);
-assignin('base', 'SA', SA);
-assignin('base', 'Delta', Delta);
 assignin('base', 'AxData', AxData);
 assignin('base', 'AyData', AyData);
 assignin('base', 'MData', MData);
@@ -266,22 +255,22 @@ YMDAxes = evalin('base', 'YMDAxes');
 cla(YMDAxes);
 
 % Plot slip angle variation lines
-for y = 1: length(Delta.range)
+for y = 1: length(Delta)
 
-    for z = 1: length(SX.range)
+    for z = 1: length(SX)
 
-        Ay_SALine = squeeze(AyData(1: length(SA.range), y, z));
-        M_SALine = squeeze(MData(1: length(SA.range), y, z));
-        Ax_SALine = squeeze(AxData(1: length(SA.range), y, z));
+        Ay_SALine = squeeze(AyData(1: length(SA), y, z));
+        M_SALine = squeeze(MData(1: length(SA), y, z));
+        Ax_SALine = squeeze(AxData(1: length(SA), y, z));
 
         YMDPlot.SA = plot3(YMDAxes, Ay_SALine, M_SALine, Ax_SALine, '-r');
         hold(YMDAxes, 'on');
 
         % Data tip setup
         dt1 = YMDPlot.SA.DataTipTemplate;
-        dt1.DataTipRows(1) = dataTipTextRow('Slip Angle', rad2deg(SA.range)); 
-        dt1.DataTipRows(2) = dataTipTextRow('Steering Angle', rad2deg(Delta.range(y) * ones(size(1: length(SA.range)))));
-        dt1.DataTipRows(3) = dataTipTextRow('Slip Ratio', SX.range(z) * ones(size(1: length(SA.range)))); 
+        dt1.DataTipRows(1) = dataTipTextRow('Slip Angle', rad2deg(SA)); 
+        dt1.DataTipRows(2) = dataTipTextRow('Steering Angle', rad2deg(Delta(y) * ones(size(1: length(SA)))));
+        dt1.DataTipRows(3) = dataTipTextRow('Slip Ratio', SX(z) * ones(size(1: length(SA)))); 
         dt1.DataTipRows(4) = dataTipTextRow('X Accel', Ax_SALine); 
         dt1.DataTipRows(5) = dataTipTextRow('Y Accel', Ay_SALine); 
         dt1.DataTipRows(6) = dataTipTextRow('Yaw Moment', M_SALine);
@@ -291,21 +280,21 @@ for y = 1: length(Delta.range)
 end
 
 % Plot steering angle variation lines
-for x = 1: length(SA.range)
+for x = 1: length(SA)
 
-    for z = 1: length(SX.range)
+    for z = 1: length(SX)
 
-        Ay_deltaLine = squeeze(AyData(x, 1: length(Delta.range), z));
-        M_deltaLine = squeeze(MData(x, 1: length(Delta.range), z));
-        Ax_deltaLine = squeeze(AxData(x, 1: length(Delta.range), z));
+        Ay_deltaLine = squeeze(AyData(x, 1: length(Delta), z));
+        M_deltaLine = squeeze(MData(x, 1: length(Delta), z));
+        Ax_deltaLine = squeeze(AxData(x, 1: length(Delta), z));
 
         YMDPlot.delta = plot3(YMDAxes, Ay_deltaLine, M_deltaLine, Ax_deltaLine, '-b');
 
         % Data tip setup
         dt2 = YMDPlot.delta.DataTipTemplate;
-        dt2.DataTipRows(1) = dataTipTextRow('Slip Angle', rad2deg(SA.range(x) * ones(size(1: length(Delta.range))))); 
-        dt2.DataTipRows(2) = dataTipTextRow('Steering Angle', rad2deg(Delta.range));
-        dt2.DataTipRows(3) = dataTipTextRow('Slip Ratio', SX.range(z) * ones(size(1: length(Delta.range)))); 
+        dt2.DataTipRows(1) = dataTipTextRow('Slip Angle', rad2deg(SA(x) * ones(size(1: length(Delta))))); 
+        dt2.DataTipRows(2) = dataTipTextRow('Steering Angle', rad2deg(Delta));
+        dt2.DataTipRows(3) = dataTipTextRow('Slip Ratio', SX(z) * ones(size(1: length(Delta)))); 
         dt2.DataTipRows(4) = dataTipTextRow('X Accel', Ax_deltaLine); 
         dt2.DataTipRows(5) = dataTipTextRow('Y Accel', Ay_deltaLine); 
         dt2.DataTipRows(6) = dataTipTextRow('Yaw Moment', M_deltaLine);
@@ -315,21 +304,21 @@ for x = 1: length(SA.range)
 end
 
 % Plot slip ratio variation lines
-for x = 1: length(SA.range)
+for x = 1: length(SA)
 
-    for y = 1: length(Delta.range)
+    for y = 1: length(Delta)
 
-        Ay_SXLine = squeeze(AyData(x, y, 1: length(SX.range)));
-        M_SXLine = squeeze(MData(x, y, 1: length(SX.range)));
-        Ax_SXLine = squeeze(AxData(x, y, 1: length(SX.range)));
+        Ay_SXLine = squeeze(AyData(x, y, 1: length(SX)));
+        M_SXLine = squeeze(MData(x, y, 1: length(SX)));
+        Ax_SXLine = squeeze(AxData(x, y, 1: length(SX)));
 
         YMDPlot.SX = plot3(YMDAxes, Ay_SXLine, M_SXLine, Ax_SXLine, '-k'); 
 
         % Data tip setup
         dt3 = YMDPlot.SX.DataTipTemplate;
-        dt3.DataTipRows(1) = dataTipTextRow('Slip Angle', rad2deg(SA.range(x) * ones(size(1: length(SX.range))))); 
-        dt3.DataTipRows(2) = dataTipTextRow('Steering Angle', rad2deg(Delta.range(y) * ones(size(1: length(SX.range)))));
-        dt3.DataTipRows(3) = dataTipTextRow('Slip Ratio', SX.range); 
+        dt3.DataTipRows(1) = dataTipTextRow('Slip Angle', rad2deg(SA(x) * ones(size(1: length(SX))))); 
+        dt3.DataTipRows(2) = dataTipTextRow('Steering Angle', rad2deg(Delta(y) * ones(size(1: length(SX)))));
+        dt3.DataTipRows(3) = dataTipTextRow('Slip Ratio', SX); 
         dt3.DataTipRows(4) = dataTipTextRow('X Accel', Ax_SXLine); 
         dt3.DataTipRows(5) = dataTipTextRow('Y Accel', Ay_SXLine); 
         dt3.DataTipRows(6) = dataTipTextRow('Yaw Moment', M_SXLine); 
