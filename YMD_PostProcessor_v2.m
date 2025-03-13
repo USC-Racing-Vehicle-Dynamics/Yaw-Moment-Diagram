@@ -44,4 +44,8 @@ end
 % Absolute average yaw moment [lb*ft]
 absAvgGrip_YM = (abs(leftGrip_YM) + abs(rightGrip_YM))/2;
 
-%% Acceleration @ Basis Points
+%% Acceleration @ Basis Points 
+SweepRange = YMDData.sweptParameter.value;
+plot(SweepRange, absAvgGrip_YM); 
+xlabel(YMDData.sweptParameter.name); 
+ylabel('Absolue Average Yaw Moment'); 
