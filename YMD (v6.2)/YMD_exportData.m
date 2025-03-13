@@ -4,9 +4,9 @@ function YMD_exportData(prompt)
 
 % Obtain vehicle parameters & YMD inputs
 param = evalin('base', 'param');
-SA = evalin('base', 'SA');
-Delta = evalin('base', 'Delta');
-SX = evalin('base', 'SX');
+SA = evalin('base', 'SA_deg.range');
+Delta = evalin('base', 'Delta_deg.range');
+SX = evalin('base', 'SX_deg.range');
 
 % Obtain YMD data
 switch prompt
