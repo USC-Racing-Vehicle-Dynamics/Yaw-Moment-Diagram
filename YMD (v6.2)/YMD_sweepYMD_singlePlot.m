@@ -16,7 +16,7 @@ switch sweptParam.ValueIndex
         param.W = sweep.range(sweptParamIndex);
 
     case 2 % Front weight distribution
-        param.fwd = sweep.range(sweptParamIndex);
+        param.fwd = sweep.range(sweptParamIndex)/100;
 
     case 3 % Wheelbase
         param.l = sweep.range(sweptParamIndex)/12;
