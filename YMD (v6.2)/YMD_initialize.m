@@ -84,35 +84,9 @@ param.r_arb_k = 386.86;       % Rear ARB stiffness [lb/in]
 param.C_L = 3.5;              % Coefficent of lift           
 param.CoP = 50;               % Center of pressure [%]
 
-% %% Set Plot Ranges and Data Points
-% 
-% % Slip ratio
-% SX.lowerLimit = -1;
-% SX.upperLimit = 1;
-% 
-% % Slip angle
-% SA.lowerLimit = deg2rad(-15);
-% SA.upperLimit = deg2rad(15);
-% 
-% % Steering angle
-% Delta.lowerLimit = deg2rad(-15);
-% Delta.upperLimit = deg2rad(15); 
-% 
-% % Number of data points for each isoline entry
-% numDataPts = 31;
-% SXdataPts = 5;
-% SX.range = linspace(SX.lowerLimit, SX.upperLimit, SXdataPts);
-% SA.range = linspace(SA.lowerLimit, SA.upperLimit, numDataPts);
-% Delta.range = linspace(Delta.lowerLimit, Delta.upperLimit, numDataPts);
-
-
 %% Assign Data and Complete Initialization
 
 assignin("base", 'param', param);
-% assignin('base', 'numDataPts', numDataPts);
-% assignin('base', 'SX', SX);
-% assignin('base', 'SA', SA);
-% assignin('base', 'Delta', Delta);
 
 isInit = 1;
 
