@@ -81,35 +81,35 @@ switch paramUnit.V.Value
         
 end
 
-% Slip angle range
-SA.lowerLimit = deg2rad(rangeField.SAField1.Value);
-SA.upperLimit = deg2rad(rangeField.SAField2.Value);
-SA.dataPts = rangeField.SAField3.Value;
-SA.range = linspace(SA.lowerLimit, SA.upperLimit, SA.dataPts);
+% Slip angle data
+SA_deg.lowerLimit = rangeField.SAField1.Value;
+SA_deg.upperLimit = rangeField.SAField2.Value;
+SA_deg.dataPts = rangeField.SAField3.Value;
+SA_deg.range = linspace(SA_deg.lowerLimit, SA_deg.upperLimit, SA_deg.dataPts);
+SA_rad_range = deg2rad(SA_deg.range);
 
-% Steering angle range
-Delta.lowerLimit = deg2rad(rangeField.deltaField1.Value);
-Delta.upperLimit = deg2rad(rangeField.deltaField2.Value);
-Delta.dataPts = rangeField.deltaField3.Value;
-Delta.range = linspace(Delta.lowerLimit, Delta.upperLimit, Delta.dataPts);
+% Steering angle data
+Delta_deg.lowerLimit = rangeField.deltaField1.Value;
+Delta_deg.upperLimit = rangeField.deltaField2.Value;
+Delta_deg.dataPts = rangeField.deltaField3.Value;
+Delta_deg.range = linspace(Delta_deg.lowerLimit, Delta_deg.upperLimit, Delta_deg.dataPts);
+Delta_rad_range = deg2rad(Delta_deg.range);
 
-% Slip ratio range
-SX.lowerLimit = rangeField.SXField1.Value;
-SX.upperLimit = rangeField.SXField2.Value;
-SX.dataPts = rangeField.SXField3.Value;
-SX.range = linspace(SX.lowerLimit, SX.upperLimit, SX.dataPts);
-
-% % Velocity range (GGV)
-% V.lowerLimit = rangeField.Vfield1.Value;
-% V.upperLimit = rangeField.Vfield2.Value;
-% V.dataPts = rangeField.Vfield3.Value;
-% V.range = linspace(V.lowerLimit, V.upperLimit, V.dataPts);
+% Slip ratio data
+SX_deg.lowerLimit = rangeField.SXField1.Value;
+SX_deg.upperLimit = rangeField.SXField2.Value;
+SX_deg.dataPts = rangeField.SXField3.Value;
+SX_deg.range = linspace(SX_deg.lowerLimit, SX_deg.upperLimit, SX_deg.dataPts);
+SX_rad_range = deg2rad(SX_deg.range);
 
 %% Assign Data to Base Workspace
 
 assignin('base', 'param', param);
-assignin('base', 'SA', SA);
-assignin('base', 'Delta', Delta);
-assignin('base', 'SX', SX);
+assignin('base', 'SA_deg', SA_deg);
+assignin('base', 'SA_rad_range', SA_rad_range);
+assignin('base', 'Delta_deg', Delta_deg);
+assignin('base', 'Delta_rad_range', Delta_rad_range);
+assignin('base', 'SX_deg', SX_deg);
+assignin('base', 'SX_rad_range', SX_rad_range);
 
 end
