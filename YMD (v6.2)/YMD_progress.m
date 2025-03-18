@@ -62,13 +62,21 @@ switch prompt
     
         YMD_exportData(1);
 
-    case 62 % Export data (sweep plot)
+    case 62 % Export figure (single plot)
+
+        progress = uiprogressdlg(fig,'Title','YMD Single Plot','Indeterminate','on');
+        progress.Message = 'Exporting Figure...';
+        drawnow
+    
+        YMD_exportData(2);
+
+    case 63 % Export data (sweep plot)
 
         progress = uiprogressdlg(fig,'Title','YMD Sweep Plot','Indeterminate','on');
         progress.Message = 'Exporting Data...';
         drawnow
     
-        YMD_exportData(2);
+        YMD_exportData(3);
 
     case 7 % Make GGV diagram
 
