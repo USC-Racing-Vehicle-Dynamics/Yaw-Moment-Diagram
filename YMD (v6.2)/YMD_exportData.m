@@ -10,9 +10,9 @@ SX = evalin('base', 'SX_deg.range');
 
 % Obtain YMD data
 switch prompt
+   
+    case 1 % Export data (single plot)
 
-    % Export from single plot
-    case 1
         Ax = evalin('base', 'AxData');
         Ay = evalin('base', 'AyData');
         M = evalin('base', 'MData');
@@ -22,12 +22,28 @@ switch prompt
         status = mkdir(folderName);
         
         % Save as .mat File
-        exportField = evalin('base', 'exportField');
-        fileName = get(exportField.field, 'value');
+        exportField = evalin('base', 'editFields.export_field1');
+        fileName = get(exportField, 'value');
         save(folderName + "/" + fileName + ".mat", 'param', 'SA', 'Delta', 'SX', 'Ax', 'Ay', 'M');
 
-    % Export from sweep plot
-    case 2
+        cd 'YMD (v6.2)'
+
+    case 2 % Export figure (single plot)
+
+        YMD = evalin('base', 'panels.YMDPlotArea');
+
+        cd ..
+        folderName = 'YMD Results';
+        status = mkdir(folderName);
+        
+        % Save as .fig
+        exportField = evalin('base', 'editFields.export_field2');
+        figName = get(exportField, 'value');
+        exportgraphics(YMD, folderName + "/" + figName + ".jpg");
+
+        cd 'YMD (v6.2)'
+    
+    case 3 % Export data (sweep plot)
 
         Ax = evalin('base', 'AxSweepData');
         Ay = evalin('base', 'AySweepData');
@@ -39,8 +55,8 @@ switch prompt
         status = mkdir(folderName);
         
         % Save as .mat File
-        exportField = evalin('base', 'exportField_sweep');
-        fileName = get(exportField.field, 'value');
+        exportField = evalin('base', 'editFields.exportSweep');
+        fileName = get(exportField, 'value');
         save(folderName + "/" + fileName + ".mat", 'param', 'sweptParameter', 'SA', 'Delta', 'SX', 'Ax', 'Ay', 'M');
 
 end
