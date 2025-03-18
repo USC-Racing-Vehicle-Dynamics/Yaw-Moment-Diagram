@@ -132,9 +132,9 @@ for sweptParamIndex = 1: length(sweep.range)
 
     [AxData, AyData, MData] = YMD_sweepYMD_singlePlot(param, sweptParam, sweep, sweptParamIndex);
     
-    AxSweepData(:, :, sweptParamIndex) = AxData;
-    AySweepData(:, :, sweptParamIndex) = AyData;
-    MSweepData(:, :, sweptParamIndex) = MData;
+    AxSweepData(:, :, :, sweptParamIndex) = AxData;
+    AySweepData(:, :, :, sweptParamIndex) = AyData;
+    MSweepData(:, :, :, sweptParamIndex) = MData;
 
 end
 
@@ -178,16 +178,14 @@ if length(sweep.range) >= 2
 end
 
 % Switch to Sweep Plot tab
-tab = evalin("base", 'tab');
+tabs = evalin("base", 'tabs');
 tabGroup = evalin("base", 'tabGroup');
-tabGroup.SelectedTab = tab.YMDSweep;
+tabGroup.SelectedTab = tabs.YMDSweep;
 
 %% Upload Plot Info
 
 assignin('base', 'YMDSweepPlots', YMDSweepPlots);
 assignin('base', 'sweep', sweep);
 assignin('base', 'sweptParamList', sweptParamList);
-
-% End of function
 
 end
