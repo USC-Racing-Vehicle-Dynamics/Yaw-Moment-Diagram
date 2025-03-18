@@ -11,14 +11,14 @@ function sweptParamIndex = YMD_sweepYMD(progress)
 param = evalin('base', 'param');
 
 % Convert units for script calculation
-param.fwd = param.fwd/100;              % [%] to none
+param.fwd = param.fwd/100;              % [%] to [-]
 param.l = param.l/12;                   % [in] to [ft]
 param.t_F = param.t_F/12;               % [in] to [ft]
 param.t_R = param.t_R/12;               % [in] to [ft]
 param.h = param.h/12;                   % [in] to [ft]
 param.z_RF = param.z_RF/12;             % [in] to [ft]
 param.z_RR = param.z_RR/12;             % [in] to [ft]
-param.ackermann = param.ackermann/100;  % [%] to none
+param.ackermann = param.ackermann/100;  % [%] to [-]
 param.toe_f = deg2rad(param.toe_f);     % [deg] to [rad]
 param.toe_r = deg2rad(param.toe_r);     % [deg] to [rad]
 param.tire_k = param.tire_k*12;         % [lb/in] to [lb/ft]
@@ -26,7 +26,7 @@ param.f_spring_k = param.f_spring_k*12; % [lb/in] to [lb/ft]
 param.r_spring_k = param.r_spring_k*12; % [lb/in] to [lb/ft]
 param.f_arb_k = param.f_arb_k*12;       % [lb/in] to [lb/ft]
 param.r_arb_k = param.r_arb_k*12;       % [lb/in] to [lb/ft]
-param.CoP = param.CoP/100;              % [%] to none
+param.CoP = param.CoP/100;              % [%] to [-]
 
 %% Visual Setup
 
