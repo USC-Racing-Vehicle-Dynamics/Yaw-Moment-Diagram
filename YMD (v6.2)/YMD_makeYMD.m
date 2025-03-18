@@ -342,10 +342,8 @@ YMD_adjustPlotView;
 YMD_adjustIsolines;
 
 % Switch to Single Plot tab
-tab = evalin("base", 'tab');
+tabs = evalin("base", 'tabs');
 tabGroup = evalin("base", 'tabGroup');
-tabGroup.SelectedTab = tab.YMD;
-
-% End of function
+tabGroup.SelectedTab = tabs.YMD;
 
 end
