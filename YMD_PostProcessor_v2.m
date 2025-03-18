@@ -6,7 +6,7 @@ clear, clc, close all;
 
 %% Load Data
 
-YMDData = load('YMD Sweep Results/YMD_sweepPlots.mat');
+YMDData = load('YMD Sweep Results/test.mat');
 
 
 % T = readtable("YMDDataTable_40mph.xlsx", opts);
@@ -17,35 +17,94 @@ YMDData = load('YMD Sweep Results/YMD_sweepPlots.mat');
 
 %% Sweep Information
 
-noSweepPts = length(YMDData.sweptParameter.value);
+sweepVarName = YMDData.sweptParameter.name; % Sweep parameter name
+sweepVarValue = YMDData.sweptParameter.value; % Sweep parameter value
+sweepVarRange = length(YMDData.sweptParameter.value); % # Sweep parameter range
 
-%% Acceleration & Yaw Moment @ Grip
+%% Lateral Acceleration & Yaw Moment @ Grip
 
-% Accelerations at grip [G]
-leftGrip_Accel = zeros(noSweepPts, 1);
-rightGrip_Accel = zeros(noSweepPts, 1);
+% Lateral accelerations at grip [G]
+Ay_leftGrip = zeros(sweepVarRange, 1);
+Ay_rightGrip = zeros(sweepVarRange, 1);
 
 % Yaw Moment at grip [lb*ft]
-leftGrip_YM = zeros(noSweepPts, 1);
-rightGrip_YM = zeros(noSweepPts, 1);
+M_leftGrip = zeros(sweepVarRange, 1);
+M_rightGrip = zeros(sweepVarRange, 1);
 
-for i = 1: noSweepPts
+for i = 1: sweepVarRange
 
-    [leftGrip_Accel(i), leftGripIndex] = min(YMDData.Ay(:, :, i), [], "all");
-    [rightGrip_Accel(i), rightGripIndex] = max(YMDData.Ay(:, :, i), [], "all");
+    Ay_leftGrip(i) = min(YMDData.Ay(:, :, :, i), [], "all");
+    Ay_rightGrip(i) = max(YMDData.Ay(:, :, :, i), [], "all");
 
-    Mi = YMDData.M(:, :, i);
-    Ayi = YMDData.Ay(:, :, i);
-    leftGrip_YM(i) = Mi(Ayi == leftGrip_Accel(i));
-    rightGrip_YM(i) = Mi(Ayi == rightGrip_Accel(i));
+    Mi = YMDData.M(:, :, :, i);
+    Ayi = YMDData.Ay(:, :, :, i);
+    M_leftGrip(i) = Mi(Ayi == Ay_leftGrip(i));
+    M_rightGrip(i) = Mi(Ayi == Ay_rightGrip(i));
 
 end
 
-% Absolute average yaw moment [lb*ft]
-absAvgGrip_YM = (abs(leftGrip_YM) + abs(rightGrip_YM))/2;
+% Absolute average lateral acceleration [G]
+absAvgGrip_Ay = (abs(Ay_leftGrip) + abs(Ay_rightGrip))/2;
 
-%% Acceleration @ Basis Points 
-SweepRange = YMDData.sweptParameter.value;
-plot(SweepRange, absAvgGrip_YM); 
-xlabel(YMDData.sweptParameter.name); 
-ylabel('Absolue Average Yaw Moment'); 
+% Absolute average yaw moment [lb*ft]
+absAvgGrip_M = (abs(M_leftGrip) + abs(M_rightGrip))/2;
+
+%% Lateral Acceleration & Yaw Moment @ Basis Points 
+
+% Define basis inputs
+basis.SA = 4;
+basis.Delta = 4;
+basis.SX = 0;
+
+% Find basis index
+SA_index = find(YMDData.SA == basis.SA);
+Delta_index = find(YMDData.Delta == basis.Delta);
+SX_index = find(YMDData.SX == basis.SX);
+
+% Find basis data
+basis.Ay = zeros(sweepVarRange, 1);
+basis.M = zeros(sweepVarRange, 1);
+for i = 1: sweepVarRange
+
+    basis.Ay(i) = YMDData.Ay(SA_index, Delta_index, SX_index, i);
+    basis.M(i) = YMDData.M(SA_index, Delta_index, SX_index, i);
+
+end
+
+%% Stability & Control @ Basis Points
+
+% Locate points around basis
+basis_left.M = zeros(sweepVarRange, 1);
+basis_right.M = zeros(sweepVarRange, 1);
+basis_upper.M = zeros(sweepVarRange, 1);
+basis_lower.M = zeros(sweepVarRange, 1);
+
+for i = 1: sweepVarRange
+
+    basis_left.M(i) = YMDData.M(SA_index-1, Delta_index, SX_index, i);
+    basis_right.M(i) = YMDData.M(SA_index+1, Delta_index, SX_index, i);
+    basis_upper.M(i) = YMDData.M(SA_index, Delta_index+1, SX_index, i);
+    basis_lower.M(i) = YMDData.M(SA_index, Delta_index-1, SX_index, i);
+
+end
+
+% Stability: d(yaw moment)/d(body slip angle) [lb*ft/deg]
+stability.left = (basis_left.M - basis.M) / (YMDData.SA(SA_index-1) - YMDData.SA(SA_index));
+stability.right = (basis_right.M - basis.M) / (YMDData.SA(SA_index+1) - YMDData.SA(SA_index));
+
+% Control: d(yaw moment)/d(steering angle) [lb*ft/deg]
+control.upper = (basis_upper.M - basis.M) / (YMDData.Delta(Delta_index+1) - YMDData.Delta(Delta_index));
+control.lower = (basis_lower.M - basis.M) / (YMDData.Delta(Delta_index-1) - YMDData.Delta(Delta_index));
+
+%% Plotting
+
+% Lateral acceleration & yaw moment @ grip
+figure; hold on; grid on;
+xlabel(sweepVarName); 
+yyaxis left
+plot(sweepVarValue, absAvgGrip_Ay);
+ylabel('Absolue Average Lateral Acceleration [G]'); 
+yyaxis right
+plot(sweepVarValue, absAvgGrip_M);
+ylabel('Absolue Average Yaw Moment [lb*ft]'); 
+title('Grip Analysis');
