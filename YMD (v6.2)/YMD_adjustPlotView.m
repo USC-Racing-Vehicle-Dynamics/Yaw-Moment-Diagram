@@ -7,21 +7,21 @@ viewSelect = evalin('base', 'viewSelect');
 
 switch(viewSelect.ValueIndex)
 
-    case 1 % Default (isometric) view
-
-        view(YMDAxes, [-1 -1 1]);
-
-    case 2 % XY view
+    case 1 % XY view
 
         view(YMDAxes, [0 0 1]);
 
-    case 3 % XZ view
+    case 2 % XZ view
 
         view(YMDAxes, [0 -1 0]);
 
-    case 4 % YZ view
+    case 3 % YZ view
 
         view(YMDAxes, [1 0 0]);
+
+    case 4 % Isometric view
+
+        view(YMDAxes, [-1 -1 1]);
 
 end
 
