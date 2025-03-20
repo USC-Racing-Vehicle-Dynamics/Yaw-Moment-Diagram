@@ -172,6 +172,11 @@ r_load_sensitivity = W_s*(h2*K_R_s/(K_phi - W_s*h2) + a_s*param.z_RR/param.l)/pa
 
 current_TLLTD = f_load_sensitivity/(f_load_sensitivity + r_load_sensitivity);      % get TLLTD
 
+% Find maximum lateral acceleration [G]
+Ay_max_f = min(FZ_lf_s, FZ_rf_s) / f_load_sensitivity;
+Ay_max_r = min(FZ_lr_s, FZ_rr_s) / r_load_sensitivity;
+Ay_max = min(Ay_max_f, Ay_max_r) - 1e-6;
+
 %% Generate YMD Data
 
 % Obtain slip and steering angle information from base
@@ -219,59 +224,86 @@ for z = 1: length(SX)
             delta_lf = delta_lf_space1(y);
             delta_rf = delta_rf_space1(y);
     
-            % Lateral acceleration (initially set to 0) [~g]
-            Ay = 0;
-  
-            % Slip angles on each tire [rad]
-            alpha_lf = Vy/Vx - delta_lf + param.toe_f;
-            alpha_rf = Vy/Vx - delta_rf - param.toe_f;
-            alpha_lr = Vy/Vx + param.toe_r;
-            alpha_rr = Vy/Vx - param.toe_r;
+            % Yaw rate (initially set to 0) [rad/s]
+            r_guess = 0;
+            r = [];
 
-            % Load trandfers on front/rear axles [lbf]
-            dFz_f = f_load_sensitivity*Ay;
-            dFz_r = r_load_sensitivity*Ay;
+            % Lateral acceleration (initially set to 0) [G]
+            Ay_guess = 0;
+            Ay = [];
 
-            % Normal loads on each tire [N]
-            FZ_lf = (FZ_lf_s + dFz_f)*4.448;
-            FZ_rf = (FZ_rf_s - dFz_f)*4.448;
-            FZ_lr = (FZ_lr_s + dFz_r)*4.448;
-            FZ_rr = (FZ_rr_s - dFz_r)*4.448;
+            while isempty(Ay) || abs(Ay_guess - Ay) > 1e-3
 
-            % Lateral forces on each tire
-            [fx_lf, fy_lf] = magicformula(param.tireData.FY.mfparams, sx, alpha_lf, FZ_lf, param.IP_f.pa, param.IA.rad);
-            [~, ~, mz_lf] = magicformula(param.tireData.MZ.mfparams, sx, alpha_lf, FZ_lf, param.IP_f.pa, param.IA.rad);
-            FX_lf = param.tireData.forceScale * fx_lf / 4.448;
-            FY_lf = param.tireData.forceScale * fy_lf / 4.448;
-            MZ_lf = param.tireData.forceScale * mz_lf * 0.737562;
+                if ~isempty(r)
 
-            [fx_rf, fy_rf] = magicformula(param.tireData.FY.mfparams, sx, alpha_rf, FZ_rf, param.IP_f.pa, param.IA.rad);
-            [~, ~, mz_rf] = magicformula(param.tireData.MZ.mfparams, sx, alpha_rf, FZ_rf, param.IP_f.pa, param.IA.rad);
-            FX_rf = param.tireData.forceScale * fx_rf / 4.448;
-            FY_rf = param.tireData.forceScale * fy_rf / 4.448;
-            MZ_rf = param.tireData.forceScale * mz_rf * 0.737562;
+                    r_guess = r;
+                    Ay_guess = Ay;
 
-            [fx_lr, fy_lr] = magicformula(param.tireData.FY.mfparams, sx, alpha_lr, FZ_lr, param.IP_r.pa, param.IA.rad);
-            [~, ~, mz_lr] = magicformula(param.tireData.MZ.mfparams, sx, alpha_lr, FZ_lr, param.IP_r.pa, param.IA.rad);
-            FX_lr = param.tireData.forceScale * fx_lr / 4.448;
-            FY_lr = param.tireData.forceScale * fy_lr / 4.448;
-            MZ_lr = param.tireData.forceScale * mz_lr * 0.737562;
+                end
 
-            [fx_rr, fy_rr] = magicformula(param.tireData.FY.mfparams, sx, alpha_rr, FZ_rr, param.IP_r.pa, param.IA.rad);
-            [~, ~, mz_rr] = magicformula(param.tireData.MZ.mfparams, sx, alpha_rr, FZ_rr, param.IP_r.pa, param.IA.rad);
-            FX_rr = param.tireData.forceScale * fx_rr / 4.448;
-            FY_rr = param.tireData.forceScale * fy_rr / 4.448;
-            MZ_rr = param.tireData.forceScale * mz_rr * 0.737562;
-
-            % Longitudinal acceleration [G]
-            Ax = (FX_lf*cos(delta_lf) + FX_lr + FX_rf*cos(delta_rf) + FX_rr)/param.W;
-
-            % Lateral acceleration [g]
-            Ay = (FY_lf*cos(delta_lf) + FY_lr + FY_rf*cos(delta_rf) + FY_rr)/param.W;
-
-            % Total alignment torque [lbf*ft]
-            MZ = MZ_lf + MZ_rf + MZ_lr + MZ_rr;
+                % Slip angles on each tire [rad]
+                alpha_lf = (Vy + r_guess*a)/(Vx - r_guess*param.t_F/2) - delta_lf + param.toe_f;
+                alpha_rf = (Vy + r_guess*a)/(Vx + r_guess*param.t_F/2) - delta_rf - param.toe_f;
+                alpha_lr = (Vy - r_guess*b)/(Vx - r_guess*param.t_R/2) + param.toe_r;
+                alpha_rr = (Vy - r_guess*b)/(Vx + r_guess*param.t_R/2) - param.toe_r;
+                
+                % Load trandfers on front/rear axles [lbf]
+                if Ay_guess > 0
     
+                    dFz_f = f_load_sensitivity * min(Ay_guess, Ay_max);
+                    dFz_r = r_load_sensitivity * min(Ay_guess, Ay_max);
+    
+                else
+    
+                    dFz_f = f_load_sensitivity * max(Ay_guess, -Ay_max);
+                    dFz_r = r_load_sensitivity * max(Ay_guess, -Ay_max);
+    
+                end
+                
+                % Normal loads on each tire [N]
+                FZ_lf = (FZ_lf_s + dFz_f) * 4.448;
+                FZ_rf = (FZ_rf_s - dFz_f) * 4.448;
+                FZ_lr = (FZ_lr_s + dFz_r) * 4.448;
+                FZ_rr = (FZ_rr_s - dFz_r) * 4.448;
+                
+                % Lateral forces on each tire
+                [fx_lf, fy_lf] = magicformula(param.tireData.FY.mfparams, sx, alpha_lf, FZ_lf, param.IP_f.pa, param.IA.rad);
+                [~, ~, mz_lf] = magicformula(param.tireData.MZ.mfparams, sx, alpha_lf, FZ_lf, param.IP_f.pa, param.IA.rad);
+                FX_lf = param.tireData.forceScale * fx_lf / 4.448;
+                FY_lf = param.tireData.forceScale * fy_lf / 4.448;
+                MZ_lf = param.tireData.forceScale * mz_lf * 0.737562;
+                
+                [fx_rf, fy_rf] = magicformula(param.tireData.FY.mfparams, sx, alpha_rf, FZ_rf, param.IP_f.pa, param.IA.rad);
+                [~, ~, mz_rf] = magicformula(param.tireData.MZ.mfparams, sx, alpha_rf, FZ_rf, param.IP_f.pa, param.IA.rad);
+                FX_rf = param.tireData.forceScale * fx_rf / 4.448;
+                FY_rf = param.tireData.forceScale * fy_rf / 4.448;
+                MZ_rf = param.tireData.forceScale * mz_rf * 0.737562;
+                
+                [fx_lr, fy_lr] = magicformula(param.tireData.FY.mfparams, sx, alpha_lr, FZ_lr, param.IP_r.pa, param.IA.rad);
+                [~, ~, mz_lr] = magicformula(param.tireData.MZ.mfparams, sx, alpha_lr, FZ_lr, param.IP_r.pa, param.IA.rad);
+                FX_lr = param.tireData.forceScale * fx_lr / 4.448;
+                FY_lr = param.tireData.forceScale * fy_lr / 4.448;
+                MZ_lr = param.tireData.forceScale * mz_lr * 0.737562;
+                
+                [fx_rr, fy_rr] = magicformula(param.tireData.FY.mfparams, sx, alpha_rr, FZ_rr, param.IP_r.pa, param.IA.rad);
+                [~, ~, mz_rr] = magicformula(param.tireData.MZ.mfparams, sx, alpha_rr, FZ_rr, param.IP_r.pa, param.IA.rad);
+                FX_rr = param.tireData.forceScale * fx_rr / 4.448;
+                FY_rr = param.tireData.forceScale * fy_rr / 4.448;
+                MZ_rr = param.tireData.forceScale * mz_rr * 0.737562;
+                
+                % Longitudinal acceleration [G]
+                Ax = (FX_lf*cos(delta_lf) + FX_lr + FX_rf*cos(delta_rf) + FX_rr)/param.W;
+                
+                % Lateral acceleration [G]
+                Ay = (FY_lf*cos(delta_lf) + FY_lr + FY_rf*cos(delta_rf) + FY_rr)/param.W;   
+                
+                % New yaw rate (M_total = Izz*r?)
+                r = Ay/Vx;
+                
+                % Total alignment torque [lbf*ft]
+                MZ = MZ_lf + MZ_rf + MZ_lr + MZ_rr;
+
+            end
     
             AxSweepData(x, y, z) = Ax;
             AySweepData(x, y, z) = Ay;       
