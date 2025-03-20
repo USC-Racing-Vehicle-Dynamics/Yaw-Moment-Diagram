@@ -1,7 +1,5 @@
 %% Yaw Moment Diagram (v6.2)
 
-% Update: 1. Bug fixes for updated magicformula function
-
 %% Clear
 
 clear, clc, close all;
