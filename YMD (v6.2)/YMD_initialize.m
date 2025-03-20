@@ -42,7 +42,7 @@ param.V.kph = 1.60934 * param.V.mph;
 %===| TIRE |==============================================================
 
 % Tire FY and MZ Models
-param.tireData.FY = load('Fitted Data/43075_R20_16x7.5_FY0.mat'); 
+param.tireData.FY = load('Fitted Data/43075_R20_16x7.5_FY03.mat'); 
 param.tireData.MZ = load('Fitted Data/43075_R20_16x7.5_MZ0.mat');
 
 % Inclination angle [rad]
@@ -71,9 +71,9 @@ param.tireData.forceScale = 0.8;
 %-------------*
 param.tire_k = 500;           % Tire spring rate [lb/in]      
 param.f_spring_k = 250;       % Front spring stiffness [lb/in]
-param.r_spring_k = 150;       % Rear spring stiffness [lb/in] 
+param.r_spring_k = 250;       % Rear spring stiffness [lb/in] 
 param.f_arb_k = 596.11;       % Front ARB stiffness[lb/in]    
-param.r_arb_k = 386.86;       % Rear ARB stiffness [lb/in]    
+param.r_arb_k = 0;       % Rear ARB stiffness [lb/in]    
 
 % ARB Backup values (keep commented)
 % f_arb_backup = [819.65 667.92 596.11 552.97 537.85 319.674];
