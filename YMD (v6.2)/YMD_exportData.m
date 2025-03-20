@@ -59,6 +59,8 @@ switch prompt
         fileName = get(exportField, 'value');
         save(folderName + "/" + fileName + ".mat", 'param', 'sweptParameter', 'SA', 'Delta', 'SX', 'Ax', 'Ay', 'M');
 
+        cd 'YMD (v6.2)'
+
 end
 
 end
