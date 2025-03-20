@@ -1,6 +1,6 @@
 
 function [isIntersected, interPoint] = GetPolyLineIntersection(polyLine1, polyLine2)
-    interPoint = [0, 0];
+    interPoint = [nan nan nan];
     isIntersected = false;
 
     %%Check data of polyline1
@@ -44,7 +44,7 @@ end
 
 function [isIntersected, interPoint] = GetLineIntersection(line1, line2)
 
-    interPoint = [0, 0];
+    interPoint = [nan nan nan];
     isIntersected = false;
 
     %%Check data
