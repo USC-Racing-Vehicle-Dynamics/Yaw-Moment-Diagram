@@ -3,7 +3,7 @@
 % Make single plot within YMD_makeGGV.m diagram 
 % based on one velocity
 
-function YMD_makeSinglePlot4GGV(param, V, sweptVIndex)
+function [AxData, AyData] = YMD_makeGGV_singlePlot(param, V, sweptVIndex)
 
 %% Program Setup
 
@@ -115,30 +115,32 @@ r_load_sensitivity = W_s*(h2*K_R_s/(K_phi - W_s*h2) + ...
 
 current_TLLTD = f_load_sensitivity/(f_load_sensitivity + r_load_sensitivity);      % get TLLTD
 
+% Find maximum lateral acceleration [G]
+Ay_max_f = min(FZ_lf_s, FZ_rf_s) / f_load_sensitivity;
+Ay_max_r = min(FZ_lr_s, FZ_rr_s) / r_load_sensitivity;
+Ay_max = min(Ay_max_f, Ay_max_r) - 1e-6;
+
 %% Generate GGV Data
 
 % Obtain wheel inputs from base
-SX = evalin('base', 'SX');
-SA = evalin('base', 'SA');
-Delta = evalin('base', 'Delta');
-%V = evalin('base', 'V');
+SX = evalin('base', 'SX_rad_range');
+SA = evalin('base', 'SA_rad_range');
+Delta = evalin('base', 'Delta_rad_range');
 
 % Spaces to store data
-AxGGVData.full = zeros(length(SA.range), length(Delta.range), length(SX.range));
-AyGGVData.full = zeros(length(SA.range), length(Delta.range), length(SX.range));
-VGGVData.full = zeros(length(SA.range), length(Delta.range), length(SX.range));
-
-%MData.full = zeros(length(SA.range), length(Delta.range));
+AxData = zeros(length(SA), length(Delta), length(SX));
+AyData = zeros(length(SA), length(Delta), length(SX));
+VData = zeros(length(SA), length(Delta), length(SX));
 
 % Spaces to store left & right front steering angles
-delta_lf_space1 = zeros(length(Delta.range), 1);
-delta_rf_space1 = zeros(length(Delta.range), 1);
+delta_lf_space1 = zeros(length(Delta), 1);
+delta_rf_space1 = zeros(length(Delta), 1);
 
 % Calculate Ackermann geometry effect on front steering angles
-for i = 1: length(Delta.range)
+for i = 1: length(Delta)
 
     % Steering angle [rad]
-    delta = Delta.range(i);
+    delta = Delta(i);
 
     % Solve for the Ackermann steering angles
     [delta_lf_space1(i), delta_rf_space1(i)] = AckermannSolver(param.ackermann, delta, param.t_F, param.l);
@@ -146,46 +148,61 @@ for i = 1: length(Delta.range)
 end
 
 % Data acquisition
-for z = 1: length(SX.range)
+for z = 1: length(SX)
 
-    sx = SX.range(z);
+    sx = SX(z);
 
-    for x = 1: length(SA.range)
+    for x = 1: length(SA)
     
         % Body slip angle [rad]
-        beta = SA.range(x);
+        beta = SA(x);
         
         % Longitudinal and lateral speeds
         Vx = param.V.fts * cos(beta);
         Vy = param.V.fts * sin(beta);
     
-        for y = 1: length(Delta.range)
+        for y = 1: length(Delta)
         
             % Steering angles split on each front tire [rad]
             delta_lf = delta_lf_space1(y);
             delta_rf = delta_rf_space1(y);
             
-            % Yaw rate (initially set to 0) [rad/s]
-            r = 0;
-            r_new = 0;
+            % Yaw rate (initial guess as 0) [rad/s]
+            r_guess = 0;
+            r = [];
+
+            % Lateral acceleration (initial guess as 0) [G]
+            Ay_guess = 0;
+            Ay = [];
             
-            % Lateral acceleration (initially set to 0) [G]
-            Ay = 0;
-            
-            while r_new == 0 || abs(r_new - r) > 1e-5
-            
-                % Update yaw rate
-                r = r_new;
+            % Loop to find steady-state lateral acceleration
+            while isempty(Ay) || abs(Ay_guess - Ay) > 1e-3
+
+                if ~isempty(r)
+
+                    r_guess = r;
+                    Ay_guess = Ay;
+
+                end
                 
                 % Slip angles on each tire [rad]
-                alpha_lf = (Vy + r*a)/(Vx - r*param.t_F/2) - delta_lf + param.toe_f;
-                alpha_rf = (Vy + r*a)/(Vx + r*param.t_F/2) - delta_rf - param.toe_f;
-                alpha_lr = (Vy - r*b)/(Vx - r*param.t_R/2) + param.toe_r;
-                alpha_rr = (Vy - r*b)/(Vx + r*param.t_R/2) - param.toe_r;
+                alpha_lf = (Vy + r_guess*a)/(Vx - r_guess*param.t_F/2) - delta_lf + param.toe_f;
+                alpha_rf = (Vy + r_guess*a)/(Vx + r_guess*param.t_F/2) - delta_rf - param.toe_f;
+                alpha_lr = (Vy - r_guess*b)/(Vx - r_guess*param.t_R/2) + param.toe_r;
+                alpha_rr = (Vy - r_guess*b)/(Vx + r_guess*param.t_R/2) - param.toe_r;
                 
-                % Load trandfers on front/rear axles [lbf]
-                dFz_f = f_load_sensitivity * Ay;
-                dFz_r = r_load_sensitivity * Ay;
+                % Load trandfers on front/rear axles [lb]
+                if abs(Ay_guess) > Ay_max
+    
+                    dFz_f = f_load_sensitivity * sign(Ay_guess) * Ay_max;
+                    dFz_r = r_load_sensitivity * sign(Ay_guess) * Ay_max;
+    
+                else
+    
+                    dFz_f = f_load_sensitivity * Ay_guess;
+                    dFz_r = r_load_sensitivity * Ay_guess;
+    
+                end
                 
                 % Normal loads on each tire [N]
                 FZ_lf = (FZ_lf_s + dFz_f) * 4.448;
@@ -195,28 +212,20 @@ for z = 1: length(SX.range)
                 
                 % Lateral forces on each tire
                 [fx_lf, fy_lf] = magicformula(param.tireData.FY.mfparams, sx, alpha_lf, FZ_lf, param.IP_f.pa, param.IA.rad);
-                %[~, ~, mz_lf] = magicformula(param.tireData.MZ.mfparams, sx, alpha_lf, FZ_lf, param.IP_f.pa, param.IA.rad);
                 FX_lf = param.tireData.forceScale * fx_lf / 4.448;
                 FY_lf = param.tireData.forceScale * fy_lf / 4.448;
-                %MZ_lf = param.tireData.forceScale * mz_lf * 0.737562;
                 
                 [fx_rf, fy_rf] = magicformula(param.tireData.FY.mfparams, sx, alpha_rf, FZ_rf, param.IP_f.pa, param.IA.rad);
-                %[~, ~, mz_rf] = magicformula(param.tireData.MZ.mfparams, sx, alpha_rf, FZ_rf, param.IP_f.pa, param.IA.rad);
                 FX_rf = param.tireData.forceScale * fx_rf / 4.448;
                 FY_rf = param.tireData.forceScale * fy_rf / 4.448;
-                %MZ_rf = param.tireData.forceScale * mz_rf * 0.737562;
                 
                 [fx_lr, fy_lr] = magicformula(param.tireData.FY.mfparams, sx, alpha_lr, FZ_lr, param.IP_r.pa, param.IA.rad);
-                %[~, ~, mz_lr] = magicformula(param.tireData.MZ.mfparams, sx, alpha_lr, FZ_lr, param.IP_r.pa, param.IA.rad);
                 FX_lr = param.tireData.forceScale * fx_lr / 4.448;
                 FY_lr = param.tireData.forceScale * fy_lr / 4.448;
-                %MZ_lr = param.tireData.forceScale * mz_lr * 0.737562;
                 
                 [fx_rr, fy_rr] = magicformula(param.tireData.FY.mfparams, sx, alpha_rr, FZ_rr, param.IP_r.pa, param.IA.rad);
-                %[~, ~, mz_rr] = magicformula(param.tireData.MZ.mfparams, sx, alpha_rr, FZ_rr, param.IP_r.pa, param.IA.rad);
                 FX_rr = param.tireData.forceScale * fx_rr / 4.448;
                 FY_rr = param.tireData.forceScale * fy_rr / 4.448;
-                %MZ_rr = param.tireData.forceScale * mz_rr * 0.737562;
                 
                 % Longitudinal acceleration [G]
                 Ax = (FX_lf*cos(delta_lf) + FX_lr + FX_rf*cos(delta_rf) + FX_rr)/param.W;
@@ -225,19 +234,13 @@ for z = 1: length(SX.range)
                 Ay = (FY_lf*cos(delta_lf) + FY_lr + FY_rf*cos(delta_rf) + FY_rr)/param.W;   
                 
                 % New yaw rate (M_total = Izz*r?)
-                r_new = Ay/Vx;
-                
-                % Total alignment torque [lbf*ft]
-                %MZ = MZ_lf + MZ_rf + MZ_lr + MZ_rr;
+                r = Ay/Vx;        
             
             end
             
-            AxGGVData.full(x, y, z) = Ax;
-            AyGGVData.full(x, y, z) = Ay;
-            VGGVData.full(x, y, z) = param.V.mph;
-
-            % MData.full(x, y, z) = (FY_lf*cos(delta_lf) + FY_rf*cos(delta_rf))*a + ...
-            %     (FY_rf*sin(delta_rf) - FY_lf*sin(delta_lf))*param.t_F/2 - (FY_lr + FY_rr)*b + MZ;
+            AxData(x, y, z) = Ax;
+            AyData(x, y, z) = Ay;
+            VData(x, y, z) = param.V.mph;
         
         end
     
@@ -245,37 +248,27 @@ for z = 1: length(SX.range)
 
 end
 
-
-% Export data
-assignin('base', 'SX', SX);
-assignin('base', 'SA', SA);
-assignin('base', 'Delta', Delta);
-assignin('base', 'V', V);
-assignin('base', 'AxGGVData', AxGGVData);
-assignin('base', 'AyGGVData', AyGGVData);
-assignin('base', 'VGGVData', VGGVData);
-
 %% Plot by Rearranging Data
 
 GGVAxes = evalin('base', 'GGVAxes');
 
 % Plot slip angle variation lines
-for y = 1: length(Delta.range)
+for y = 1: length(Delta)
 
-    for z = 1: length(SX.range)
+    for z = 1: length(SX)
 
-        Ay_SALine = squeeze(AyGGVData.full(1: length(SA.range), y, z));
-        Ax_SALine = squeeze(AxGGVData.full(1: length(SA.range), y, z));
-        V_SALine = squeeze(VGGVData.full(1: length(SA.range), y, z));
+        Ay_SALine = squeeze(AyData(1: length(SA), y, z));
+        Ax_SALine = squeeze(AxData(1: length(SA), y, z));
+        V_SALine = squeeze(VData(1: length(SA), y, z));
 
         GGVPlot.SA = plot3(GGVAxes, Ay_SALine, Ax_SALine, V_SALine, '-r');
         hold(GGVAxes, 'on');
 
         % Data tip setup
         dt1 = GGVPlot.SA.DataTipTemplate;
-        dt1.DataTipRows(1) = dataTipTextRow('Slip Angle', rad2deg(SA.range)); 
-        dt1.DataTipRows(2) = dataTipTextRow('Steering Angle', rad2deg(Delta.range(y) * ones(size(1: length(SA.range)))));
-        dt1.DataTipRows(3) = dataTipTextRow('Slip Ratio', SX.range(z) * ones(size(1: length(SA.range)))); 
+        dt1.DataTipRows(1) = dataTipTextRow('Slip Angle', rad2deg(SA)); 
+        dt1.DataTipRows(2) = dataTipTextRow('Steering Angle', rad2deg(Delta(y) * ones(size(1: length(SA)))));
+        dt1.DataTipRows(3) = dataTipTextRow('Slip Ratio', SX(z) * ones(size(1: length(SA)))); 
         dt1.DataTipRows(4) = dataTipTextRow('X Accel', Ax_SALine); 
         dt1.DataTipRows(5) = dataTipTextRow('Y Accel', Ay_SALine); 
         dt1.DataTipRows(6) = dataTipTextRow('Velocity [mph]', V_SALine);
@@ -288,21 +281,21 @@ for y = 1: length(Delta.range)
 end
 
 % Plot steering angle variation lines
-for x = 1: length(SA.range)
+for x = 1: length(SA)
 
-    for z = 1: length(SX.range)
+    for z = 1: length(SX)
 
-        Ay_deltaLine = squeeze(AyGGVData.full(x, 1: length(Delta.range), z));
-        Ax_deltaLine = squeeze(AxGGVData.full(x, 1: length(Delta.range), z));
-        V_deltaLine = squeeze(VGGVData.full(x, 1: length(Delta.range), z));
+        Ay_deltaLine = squeeze(AyData(x, 1: length(Delta), z));
+        Ax_deltaLine = squeeze(AxData(x, 1: length(Delta), z));
+        V_deltaLine = squeeze(VData(x, 1: length(Delta), z));
 
         GGVPlot.delta = plot3(GGVAxes, Ay_deltaLine, Ax_deltaLine, V_deltaLine, '-b');
 
         % Data tip setup
         dt2 = GGVPlot.delta.DataTipTemplate;
-        dt2.DataTipRows(1) = dataTipTextRow('Slip Angle', rad2deg(SA.range(x) * ones(size(1: length(Delta.range))))); 
-        dt2.DataTipRows(2) = dataTipTextRow('Steering Angle', rad2deg(Delta.range));
-        dt2.DataTipRows(3) = dataTipTextRow('Slip Ratio', SX.range(z) * ones(size(1: length(Delta.range)))); 
+        dt2.DataTipRows(1) = dataTipTextRow('Slip Angle', rad2deg(SA(x) * ones(size(1: length(Delta))))); 
+        dt2.DataTipRows(2) = dataTipTextRow('Steering Angle', rad2deg(Delta));
+        dt2.DataTipRows(3) = dataTipTextRow('Slip Ratio', SX(z) * ones(size(1: length(Delta)))); 
         dt2.DataTipRows(4) = dataTipTextRow('X Accel', Ax_deltaLine); 
         dt2.DataTipRows(5) = dataTipTextRow('Y Accel', Ay_deltaLine); 
         dt2.DataTipRows(6) = dataTipTextRow('Velocity [mph]', V_deltaLine);
@@ -315,21 +308,21 @@ for x = 1: length(SA.range)
 end
 
 % Plot slip ratio variation lines
-for x = 1: length(SA.range)
+for x = 1: length(SA)
 
-    for y = 1: length(Delta.range)
+    for y = 1: length(Delta)
 
-        Ay_SXLine = squeeze(AyGGVData.full(x, y, 1: length(SX.range)));
-        Ax_SXLine = squeeze(AxGGVData.full(x, y, 1: length(SX.range)));
-        V_SXLine = squeeze(VGGVData.full(x, y, 1: length(SX.range)));
+        Ay_SXLine = squeeze(AyData(x, y, 1: length(SX)));
+        Ax_SXLine = squeeze(AxData(x, y, 1: length(SX)));
+        V_SXLine = squeeze(VData(x, y, 1: length(SX)));
 
         GGVPlot.SX = plot3(GGVAxes, Ay_SXLine, Ax_SXLine, V_SXLine, '-k'); 
 
         % Data tip setup
         dt3 = GGVPlot.SX.DataTipTemplate;
-        dt3.DataTipRows(1) = dataTipTextRow('Slip Angle', rad2deg(SA.range(x) * ones(size(1: length(SX.range))))); 
-        dt3.DataTipRows(2) = dataTipTextRow('Steering Angle', rad2deg(Delta.range(y) * ones(size(1: length(SX.range)))));
-        dt3.DataTipRows(3) = dataTipTextRow('Slip Ratio', SX.range); 
+        dt3.DataTipRows(1) = dataTipTextRow('Slip Angle', rad2deg(SA(x) * ones(size(1: length(SX))))); 
+        dt3.DataTipRows(2) = dataTipTextRow('Steering Angle', rad2deg(Delta(y) * ones(size(1: length(SX)))));
+        dt3.DataTipRows(3) = dataTipTextRow('Slip Ratio', SX); 
         dt3.DataTipRows(4) = dataTipTextRow('X Accel', Ax_SXLine); 
         dt3.DataTipRows(5) = dataTipTextRow('Y Accel', Ay_SXLine); 
         dt3.DataTipRows(6) = dataTipTextRow('Velocity [mph]', V_SXLine);
@@ -342,25 +335,5 @@ for x = 1: length(SA.range)
 end
 
 assignin('base', 'GGVPlots', GGVPlots);
-
-% % Assign plot to base workspace
-% grid(GGVAxes, 'on');
-% xlabel(GGVAxes, 'Lateral Acceleration [G]');
-% ylabel(GGVAxes, 'Longitudinal Acceleration [G]');
-% zlabel(GGVAxes, 'Velocity [mph]');
-% title(GGVAxes, 'GGV Diagram');
-% %view(YMDAxes, [-1 -1 1]);
-% hold(GGVAxes, 'off');
-% 
-% % Adjust plot view & isolines based on user selection
-% % YMD_adjustPlotView;
-% % YMD_adjustIsolines;
-% 
-% % Switch to GGV tab
-% tab = evalin("base", 'tab');
-% tabGroup = evalin("base", 'tabGroup');
-% tabGroup.SelectedTab = tab.GGV;
-
-% End of function
 
 end
