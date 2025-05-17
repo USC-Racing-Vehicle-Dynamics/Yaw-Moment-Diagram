@@ -25,9 +25,9 @@ for i = 1: length(sweep.range)
 
     else
 
-        set(YMDSweepPlots{i, 1}, 'color', [0.8 0.8 0.8 0.05]);
-        set(YMDSweepPlots{i, 2}, 'color', [0.8 0.8 0.8 0.05]);
-        set(YMDSweepPlots{i, 3}, 'color', [0.8 0.8 0.8 0.05]);
+        set(YMDSweepPlots{i, 1}, 'color', [0 0 0 0.1]);
+        set(YMDSweepPlots{i, 2}, 'color', [0 0 0 0.1]);
+        set(YMDSweepPlots{i, 3}, 'color', [0 0 0 0.1]);
 
     end
 
