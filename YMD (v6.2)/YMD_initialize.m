@@ -42,7 +42,7 @@ param.V.kph = 1.60934 * param.V.mph;
 %===| TIRE |==============================================================
 
 % Tire FY and MZ Models
-param.tireData.FY = load('Fitted Data/43075_R20_16x7.5_FY03.mat'); 
+param.tireData.FY = load('Fitted Data/43075_R20_16x7.5_FY04.mat'); 
 param.tireData.MZ = load('Fitted Data/43075_R20_16x7.5_MZ0.mat');
 
 % Inclination angle [rad]
