@@ -43,7 +43,7 @@ sweep.dataPts = sweepField.field3.Value;
 sweep.range = linspace(sweep.lowerLimit, sweep.upperLimit, sweep.dataPts);
 
 % Fill swept parameter space into the dropdown list
-sweptParamList = evalin("base", 'sweptParamList');
+sweptParamList = evalin("base", 'dropdownLists.highlightedPlotNo');
 sweptParamList.Items = string(sweep.range);
 
 % Set up number of sweep plots
@@ -54,7 +54,7 @@ assignin('base', 'YMDSweepPlots', YMDSweepPlots);
 sweptParam = evalin('base', 'sweptParam');
 
 % Show parameter to sweep
-sweepInfoLbl = evalin("base", 'sweepInfoLbl2');
+sweepInfoLbl = evalin("base", 'labels.sweptParamName');
 switch sweptParam.ValueIndex
 
     case 1
@@ -122,9 +122,9 @@ sweptParamInfo.value = sweep.range;
 
 %% Loop to Plot
 
-AxSweepData = [];
-AySweepData = [];
-MSweepData = [];
+AxData_sweep = [];
+AyData_sweep = [];
+MData_sweep = [];
 for sweptParamIndex = 1: length(sweep.range)
 
     progress.Message = strcat("Plotting Figure ", string(sweptParamIndex), " of ", string(length(sweep.range)), "...");
@@ -132,17 +132,17 @@ for sweptParamIndex = 1: length(sweep.range)
 
     [AxData, AyData, MData] = YMD_sweepYMD_singlePlot(param, sweptParam, sweep, sweptParamIndex);
     
-    AxSweepData(:, :, :, sweptParamIndex) = AxData;
-    AySweepData(:, :, :, sweptParamIndex) = AyData;
-    MSweepData(:, :, :, sweptParamIndex) = MData;
+    AxData_sweep(:, :, :, sweptParamIndex) = AxData;
+    AyData_sweep(:, :, :, sweptParamIndex) = AyData;
+    MData_sweep(:, :, :, sweptParamIndex) = MData;
 
 end
 
-% Export Data
+% Export data
 assignin('base', 'sweptParamInfo', sweptParamInfo);
-assignin('base', 'AxSweepData', AxSweepData);
-assignin('base', 'AySweepData', AySweepData);
-assignin('base', 'MSweepData', MSweepData);
+assignin('base', 'AxData_sweep', AxData_sweep);
+assignin('base', 'AyData_sweep', AyData_sweep);
+assignin('base', 'MData_sweep', MData_sweep);
 
 % Update progress
 progress.Value = 1;
@@ -169,9 +169,9 @@ if length(sweep.range) >= 2
 
     for i = 2: length(sweep.range)
     
-        set(YMDSweepPlots{i, 1}, 'color', [0.8 0.8 0.8 0.05]);
-        set(YMDSweepPlots{i, 2}, 'color', [0.8 0.8 0.8 0.05]);
-        set(YMDSweepPlots{i, 3}, 'color', [0.8 0.8 0.8 0.05]);
+        set(YMDSweepPlots{i, 1}, 'color', [0 0 0 0.1]);
+        set(YMDSweepPlots{i, 2}, 'color', [0 0 0 0.1]);
+        set(YMDSweepPlots{i, 3}, 'color', [0 0 0 0.1]);
     
     end
 
