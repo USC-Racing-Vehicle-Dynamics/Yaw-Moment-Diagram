@@ -3,7 +3,7 @@
 % Make single plot within YMD_makeYMDSweep.m function 
 % for one certain value of the swept parameter
 
-function [AxSweepData, AySweepData, MSweepData] = YMD_sweepYMD_singlePlot(param, sweptParam, sweep, sweptParamIndex)
+function [AxData, AyData, MData] = YMD_sweepYMD_singlePlot(param, sweptParam, sweep, sweptParamIndex)
 
 %% Program Setup
 
@@ -185,9 +185,9 @@ SA = evalin('base', 'SA_rad_range');
 Delta = evalin('base', 'Delta_rad_range');
 
 % Spaces to store angular velocity & yaw moment
-AxSweepData = zeros(length(SA), length(Delta), length(SX));
-AySweepData = zeros(length(SA), length(Delta));
-MSweepData = zeros(length(SA), length(Delta));
+AxData = zeros(length(SA), length(Delta), length(SX));
+AyData = zeros(length(SA), length(Delta));
+MData = zeros(length(SA), length(Delta));
 
 % Spaces to store left & right front steering angles
 delta_lf_space1 = zeros(length(Delta), 1);
@@ -305,9 +305,9 @@ for z = 1: length(SX)
 
             end
     
-            AxSweepData(x, y, z) = Ax;
-            AySweepData(x, y, z) = Ay;       
-            MSweepData(x, y, z) = (FY_lf*cos(delta_lf) + FY_rf*cos(delta_rf))*a + ...
+            AxData(x, y, z) = Ax;
+            AyData(x, y, z) = Ay;       
+            MData(x, y, z) = (FY_lf*cos(delta_lf) + FY_rf*cos(delta_rf))*a + ...
                 (FY_rf*sin(delta_rf) - FY_lf*sin(delta_lf))*param.t_F/2 - (FY_lr + FY_rr)*b + MZ;
     
         end
@@ -325,9 +325,9 @@ for y = 1: length(Delta)
 
     for z = 1: length(SX)
 
-        Ay_SALine = squeeze(AySweepData(1: length(SA), y, z));
-        M_SALine = squeeze(MSweepData(1: length(SA), y, z));
-        Ax_SALine = squeeze(AxSweepData(1: length(SA), y, z));
+        Ay_SALine = squeeze(AyData(1: length(SA), y, z));
+        M_SALine = squeeze(MData(1: length(SA), y, z));
+        Ax_SALine = squeeze(AxData(1: length(SA), y, z));
 
         YMDSweepPlot.SA = plot3(YMDSweepAxes, Ay_SALine, M_SALine, Ax_SALine, '-r');
         hold(YMDSweepAxes, 'on');
@@ -353,9 +353,9 @@ for x = 1: length(SA)
 
     for z = 1: length(SX)
 
-        Ay_deltaLine = squeeze(AySweepData(x, 1: length(Delta), z));
-        M_deltaLine = squeeze(MSweepData(x, 1: length(Delta), z));
-        Ax_deltaLine = squeeze(AxSweepData(x, 1: length(Delta), z));
+        Ay_deltaLine = squeeze(AyData(x, 1: length(Delta), z));
+        M_deltaLine = squeeze(MData(x, 1: length(Delta), z));
+        Ax_deltaLine = squeeze(AxData(x, 1: length(Delta), z));
 
         YMDSweepPlot.delta = plot3(YMDSweepAxes, Ay_deltaLine, M_deltaLine, Ax_deltaLine, '-b');
 
@@ -380,9 +380,9 @@ for x = 1: length(SA)
 
     for y = 1: length(Delta)
 
-        Ay_SXLine = squeeze(AySweepData(x, y, 1: length(SX)));
-        M_SXLine = squeeze(MSweepData(x, y, 1: length(SX)));
-        Ax_SXLine = squeeze(AxSweepData(x, y, 1: length(SX)));
+        Ay_SXLine = squeeze(AyData(x, y, 1: length(SX)));
+        M_SXLine = squeeze(MData(x, y, 1: length(SX)));
+        Ax_SXLine = squeeze(AxData(x, y, 1: length(SX)));
 
         YMDSweepPlot.SX = plot3(YMDSweepAxes, Ay_SXLine, M_SXLine, Ax_SXLine, '-k'); 
 
@@ -403,7 +403,5 @@ for x = 1: length(SA)
 end
 
 assignin('base', 'YMDSweepPlots', YMDSweepPlots);
-
-% End of function
 
 end
