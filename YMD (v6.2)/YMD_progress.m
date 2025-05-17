@@ -60,7 +60,7 @@ switch prompt
         progress.Message = 'Exporting Data...';
         drawnow
     
-        YMD_exportData(1);
+        YMD_export(1);
 
     case 62 % Export figure (single plot)
 
@@ -68,7 +68,7 @@ switch prompt
         progress.Message = 'Exporting Figure...';
         drawnow
     
-        YMD_exportData(2);
+        YMD_export(2);
 
     case 63 % Export data (sweep plot)
 
@@ -76,7 +76,31 @@ switch prompt
         progress.Message = 'Exporting Data...';
         drawnow
     
-        YMD_exportData(3);
+        YMD_export(3);
+    
+    case 64 % Export figure (sweep plot)
+
+        progress = uiprogressdlg(fig,'Title','YMD Sweep Plot','Indeterminate','on');
+        progress.Message = 'Exporting Figure...';
+        drawnow
+    
+        YMD_export(4);
+
+    case 65 % Export data (GGV plot)
+
+        progress = uiprogressdlg(fig,'Title','GGV Plot','Indeterminate','on');
+        progress.Message = 'Exporting Data...';
+        drawnow
+    
+        YMD_export(5);
+
+    case 66 % Export figure (GGV plot)
+
+        progress = uiprogressdlg(fig,'Title','GGV Plot','Indeterminate','on');
+        progress.Message = 'Exporting Figure...';
+        drawnow
+    
+        YMD_export(6);
 
     case 7 % Make GGV diagram
 
