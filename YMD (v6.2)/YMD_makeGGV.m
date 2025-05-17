@@ -48,15 +48,27 @@ assignin('base', 'GGVPlots', GGVPlots);
 
 %% Loop to Plot
 
+AxData_GGV = [];
+AyData_GGV = [];
+VData_GGV = [];
+
 for sweptVIndex = 1: length(V.range)
 
     progress.Message = strcat("Plotting Figure ", string(sweptVIndex), " of ", string(length(V.range)), "...");
     progress.Value = (sweptVIndex - 1)/length(V.range);
 
-    YMD_makeSinglePlot4GGV(param, V, sweptVIndex);
+    [AxData, AyData] = YMD_makeGGV_singlePlot(param, V, sweptVIndex);
+
+    AxData_GGV(:, :, sweptVIndex) = AxData;
+    AyData_GGV(:, :, sweptVIndex) = AyData;
     
 end
 
+% Export data
+assignin('base', 'AxData_GGV', AxData_GGV);
+assignin('base', 'AyData_GGV', AyData_GGV);
+
+% Update progress
 progress.Value = 1;
 progress.Message = 'Finishing Up...';
 
@@ -69,37 +81,14 @@ zlabel(GGVAxes, 'Velocity [mph]')
 title(GGVAxes, 'GGV Diagram');
 hold(GGVAxes, 'off');
 
-% % Highlight the plot with first value of swept parameter
-% GGVPlots = evalin('base', 'GGVPlots');
-% set(GGVPlots{1, 1}, 'color', 'r');
-% set(GGVPlots{1, 2}, 'color', 'b');
-% set(GGVPlots{1, 3}, 'color', 'k');
-% uistack(GGVPlots{1, 1}, 'top');
-% uistack(GGVPlots{1, 2}, 'top');
-% uistack(GGVPlots{1, 3}, 'top');
-% if length(V.range) >= 2
-% 
-%     for i = 2: length(V.range)
-% 
-%         set(GGVPlots{i, 1}, 'color', [0.8 0.8 0.8 0.05]);
-%         set(GGVPlots{i, 2}, 'color', [0.8 0.8 0.8 0.05]);
-%         set(GGVPlots{i, 3}, 'color', [0.8 0.8 0.8 0.05]);
-% 
-%     end
-% 
-% end
-
 % Switch to Sweep Plot tab
-tab = evalin("base", 'tab');
+tabs = evalin("base", 'tabs');
 tabGroup = evalin("base", 'tabGroup');
-tabGroup.SelectedTab = tab.GGV;
+tabGroup.SelectedTab = tabs.GGV;
 
 %% Upload Plot Info
 
 assignin('base', 'GGVPlots', GGVPlots);
 assignin('base', 'V', V);
-%assignin('base', 'sweptParamList', sweptParamList);
-
-% End of function
 
 end
