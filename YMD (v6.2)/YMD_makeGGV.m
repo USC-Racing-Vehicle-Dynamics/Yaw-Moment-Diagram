@@ -50,7 +50,6 @@ assignin('base', 'GGVPlots', GGVPlots);
 
 AxData_GGV = [];
 AyData_GGV = [];
-VData_GGV = [];
 
 for sweptVIndex = 1: length(V.range)
 
@@ -59,8 +58,8 @@ for sweptVIndex = 1: length(V.range)
 
     [AxData, AyData] = YMD_makeGGV_singlePlot(param, V, sweptVIndex);
 
-    AxData_GGV(:, :, sweptVIndex) = AxData;
-    AyData_GGV(:, :, sweptVIndex) = AyData;
+    AxData_GGV(:, :, :, sweptVIndex) = AxData;
+    AyData_GGV(:, :, :, sweptVIndex) = AyData;
     
 end
 
