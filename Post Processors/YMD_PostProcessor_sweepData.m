@@ -10,7 +10,10 @@ cd ..
 addpath('YMD Sweep Results');
 
 % ADD DATA HERE
-data(1) = load('YMD Sweep Results/sweep_cop_test.mat');
+data(1) = load('YMD Sweep Results/20mph_cop_sweep.mat');
+data(2) = load('YMD Sweep Results/40mph_cop_sweep.mat');
+data(3) = load('YMD Sweep Results/60mph_cop_sweep.mat');
+
 
 % Number of data sets
 datasize = length(data);

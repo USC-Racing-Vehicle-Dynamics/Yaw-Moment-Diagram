@@ -257,13 +257,14 @@ for z = 1: length(SX)
                 MZ = MZ_lf + MZ_rf + MZ_lr + MZ_rr;
 
             end
-            
+
             AxData(x, y, z) = Ax;
             AyData(x, y, z) = Ay;       
             MData(x, y, z) = (FY_lf*cos(delta_lf) + FY_rf*cos(delta_rf))*a + ...
                 (FY_rf*sin(delta_rf) - FY_lf*sin(delta_lf))*param.t_F/2 - (FY_lr + FY_rr)*b + MZ;
         
         end
+
     
     end
 
