@@ -8,6 +8,7 @@ function YMD_makeYMD
 
 % Import parameters
 param = evalin('base', 'param');      
+cfg = evalin('base', 'cfg');
 
 % Convert units for script calculation
 param.fwd = param.fwd/100;              % [%] to none
@@ -34,12 +35,12 @@ param.CoP = param.CoP/100;              % [%] to none
 %--------*
 % Masses |
 %--------*
-W_F = param.W*param.fwd;            % Front total mass [lb]
-W_R = param.W - W_F;          % Rear total mass [lb]
-W_uF = 48.24;           % Front unsprung mass [lb]
-W_uR = 47.56;           % Rear unsprung mass [lb]
+W_F = param.W*param.fwd;                                    % Front total mass [lb]
+W_R = param.W - W_F;                                        % Rear total mass [lb]
+W_uF = cfg.frontSuspension.mass.sprung_mass.value;          % Front unsprung mass [lb]
+W_uR = cfg.rearSuspension.mass.sprung_mass.value;           % Rear unsprung mass [lb]
 W_u = W_uF + W_uR;      % Total unsprung mass [lb]
-W_s = param.W - W_u;          % Total sprung mass [lb]
+W_s = param.W - W_u;    % Total sprung mass [lb]
 W_sF = W_F - W_uF;      % Front sprung mass [lb]              
 W_sR = W_R - W_uR;      % Rear sprung mass [lb]
 
@@ -53,9 +54,9 @@ Izz = (param.W/param.g)*((a + b)^2 + param.t_F^2)/12; % Moment of inertia
 %-----------------------------*
 % CG/Roll Center/Ride Heights |
 %-----------------------------*
-h_u = 8/12;                                             % CG height of unsprung mass [ft]
+h_u = cfg.frontSuspension.mass.cg_height.value/12;                  % CG height of unsprung mass [ft]
 h_s = (param.h*param.W - h_u*W_u)/W_s;                              % CG height of sprung mass [ft]
-H = param.h - (param.z_RF + (param.z_RR - param.z_RF)*a/param.l);                     % CG height above roll axis [ft]
+H = param.h - (param.z_RF + (param.z_RR - param.z_RF)*a/param.l);   % CG height above roll axis [ft]
 % Assume x-position of sprung mass CG
 % is the same as total CG
 a_s = a;                                                % x-position of sprung mass CG [ft]
@@ -65,26 +66,24 @@ h2 = (h_s - (param.z_RF + (param.z_RR - param.z_RF)*a_s/param.l))*cos(theta);   
 % are the same as the total unsprung mass
 z_WF = h_u;                                             % CG height of front unsprung mass [ft]
 z_WR = h_u;                                             % CG height of rear unsprung mass [ft]
-front_RH = -0.6;                                        % Front ride height [ft]
-rear_RH = -0.6;                                         % Rear ride height [ft]
   
 %===| SUSPENSION |====================================================
 
 %---------------*
 % Motion ratios |
 %---------------*
-f_MR_spring = 1.02;
-r_MR_spring = 1.18;
-f_MR_arb = .2;               % spring / wheel [deg/deg]      
-r_MR_arb = .35;
+f_MR_spring = cfg.frontSuspension.kinematics.spring_MR;
+r_MR_spring = cfg.rearSuspension.kinematics.spring_MR;
+f_MR_arb = cfg.frontSuspension.kinematics.arb_MR;               % spring / wheel [deg/deg]      
+r_MR_arb = cfg.rearSuspension.kinematics.arb_MR;
 
 %===| AERO |==========================================================
 
 % Frontal area [ft^2]
-A = 0.96;
+A = cfg.aero_params.frontal_area.value;
 
 % Air density [lb/ft^3]
-rho_air = 0.0763;
+rho_air = cfg.aero_params.rho.value;
 
 % Total downforce
 DF = param.C_L*A*param.V.mph^2*rho_air/2;
@@ -92,9 +91,6 @@ DF = param.C_L*A*param.V.mph^2*rho_air/2;
 % Front and rear downforces [lb]
 f_DF = DF*param.CoP;
 r_DF = DF*(1 - param.CoP);
-
-% Front and rear downforces [lb]
-% [f_DF, r_DF] = aeromap_func_v2(front_RH, rear_RH, V_fts);
 
 %===| MISCANLLANEOUS |================================================
 

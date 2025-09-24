@@ -9,9 +9,8 @@ clear, clc, close all;
 cd ..
 addpath('YMD Sweep Results');
 
-%data(1) = load('YMD Sweep Results/YMD_sweepCoP_20mph_FARB500.mat');
-data(1) = load('YMD Sweep Results/YMD_sweepCoP_40mph_expanded.mat');
-%data(3) = load('YMD Sweep Results/YMD_sweepCoP_60mph_FARB500.mat');
+% ADD DATA HERE
+data(1) = load('YMD Sweep Results/sweep_cop_test.mat');
 
 % Number of data sets
 datasize = length(data);
@@ -163,7 +162,7 @@ nexttile; hold on;
 plot(sweepVarValue, grip.M_right, '-o');
 xlabel('Front Center of Pressure [%]'); 
 ylabel('Average Yaw Moment [lb*ft]'); 
-title('Grip Analysis');
+title('Vehicle Balance');
 legend('20 mph', '40 mph', '60 mph', 'Location', 'best');
 
 % Limit balance lateral acceleration
@@ -171,7 +170,7 @@ nexttile; hold on;
 plot(sweepVarValue, limitBalance.Ay_absAvg, '-o');
 xlabel('Front Center of Pressure [%]'); 
 ylabel('Absolue Average Lateral Acceleration [G]'); 
-title('Limit Balance Analysis');
+title('Limit Balance Analysis Grip');
 legend('20 mph', '40 mph', '60 mph', 'Location', 'best');
 
 % Stability @ basis

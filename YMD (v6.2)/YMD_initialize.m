@@ -12,7 +12,7 @@ param.g = 32.1740;                    % Gravity [ft/s^2]
 %===| VEHICLE BODY |======================================================
                                                     
 param.W = cfg.mass.dry_mass.value + cfg.mass.driver_mass.value + cfg.mass.fuel_mass.value;  % Vehicle mass [lb]             
-param.fwd = cfg.mass.y_loc;                              % Front weight distribution [%]
+param.fwd = cfg.mass.y_loc*100;                              % Front weight distribution [%]
 param.l = cfg.dimensions.wheelbase.value;                % Wheelbase [in]               
 param.t_F = cfg.frontSuspension.geom.track_width.value;  % Front track width [in]       
 param.t_R = cfg.rearSuspension.geom.track_width.value;   % Rear track width [in]         
@@ -56,6 +56,7 @@ param.CoP = cfg.aero_params.CoP;                % Center of pressure [%]
 %% Assign Data and Complete Initialization
 
 assignin("base", 'param', param);
+assignin("base", "cfg", cfg);
 
 isInit = 1;
 
