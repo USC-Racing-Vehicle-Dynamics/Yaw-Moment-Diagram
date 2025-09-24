@@ -6,83 +6,52 @@ function isInit = YMD_initialize
 
 %% Set Input Parameters
 
-%===| PHYSICAL CONSTANTS |================================================
-
+cfg = readMatlabConfig('SCR25');
 param.g = 32.1740;                    % Gravity [ft/s^2]
 
 %===| VEHICLE BODY |======================================================
                                                     
-%--------*
-% Masses |
-%--------*
-param.W = 650;                        % Vehicle mass [lb]             
-param.fwd = 48;                       % Front weight distribution [%]
-
-%-----------------------*
-% Peripheral Dimensions |
-%-----------------------*
-param.l = 60.5;                       % Wheelbase [in]               
-param.t_F = 48;                       % Front track width [in]       
-param.t_R = 48;                       % Rear track width [in]         
-
-%-----------------------------*
-% CG/Roll Center/Ride Heights |
-%-----------------------------*
-param.h = 12.5;                       % CG height [in]                
-param.z_RF = 2.78;                    % Front roll center height [in]
-param.z_RR = 4.17;                    % Rear roll center height [in]
-
-%-----------------------------------*
-% Vehicle Speed (assuming constant) |
-%-----------------------------------*
-param.V.mph = 40;                           
+param.W = cfg.mass.dry_mass.value + cfg.mass.driver_mass.value + cfg.mass.fuel_mass.value;  % Vehicle mass [lb]             
+param.fwd = cfg.mass.y_loc;                              % Front weight distribution [%]
+param.l = cfg.dimensions.wheelbase.value;                % Wheelbase [in]               
+param.t_F = cfg.frontSuspension.geom.track_width.value;  % Front track width [in]       
+param.t_R = cfg.rearSuspension.geom.track_width.value;   % Rear track width [in]         
+param.h = cfg.mass.z_loc.value;                          % CG height [in]                
+param.z_RF = cfg.frontSuspension.geom.static_roll_center.value;  % Front roll center height [in]
+param.z_RR = cfg.rearSuspension.geom.static_roll_center.value;   % Rear roll center height [in]
+param.V.mph = cfg.simulation_params.YMD.velocity.value;                           
 param.V.fts = 1.46667 * param.V.mph;         
 param.V.kph = 1.60934 * param.V.mph;  
 
 %===| TIRE |==============================================================
 
 % Tire FY and MZ Models
-param.tireData.FY = load('Fitted Data/43075_R20_16x7.5_FY04.mat'); 
-param.tireData.MZ = load('Fitted Data/43075_R20_16x7.5_MZ0.mat');
+param.tireData.FY = load(cfg.tire_params.model.Fy_model); 
+param.tireData.MZ = load(cfg.tire_params.model.Mz_model);
 
-% Inclination angle [rad]
-param.IA.rad = deg2rad(0);            
-
-% Inflation pressure (front & rear)
-param.IP_f.psi = 11;                  
-param.IP_r.psi = 11;                  
+param.IA.rad = deg2rad(cfg.frontSuspension.geom.static_IA.value);            
+param.IP_f.psi = cfg.tire_params.inflation_pres.value;                  
+param.IP_r.psi = cfg.tire_params.inflation_pres.value;                  
 param.IP_f.pa = param.IP_f.psi * 6894.76; 
 param.IP_r.pa = param.IP_r.psi * 6894.76;
 
-% Ackermann [%]
-param.ackermann = 110;                
-
-% Toe (front & rear) [deg]
-param.toe_f = 0.5;                             
-param.toe_r = 0.5;                             
-
-% Tire force scale
-param.tireData.forceScale = 0.8;      
+param.ackermann = cfg.steering.ackermann.value;                
+param.toe_f = cfg.frontSuspension.geom.static_toe.value;                             
+param.toe_r = cfg.rearSuspension.geom.static_toe.value;                             
+param.tireData.forceScale = cfg.simulation_params.tire_model.scaling_factor;      
 
 %===| SUSPENSION |========================================================
 
-%-------------*
-% Stiffnesses |
-%-------------*
-param.tire_k = 500;           % Tire spring rate [lb/in]      
-param.f_spring_k = 250;       % Front spring stiffness [lb/in]
-param.r_spring_k = 250;       % Rear spring stiffness [lb/in] 
-param.f_arb_k = 596.11;       % Front ARB stiffness[lb/in]    
-param.r_arb_k = 0;       % Rear ARB stiffness [lb/in]    
-
-% ARB Backup values (keep commented)
-% f_arb_backup = [819.65 667.92 596.11 552.97 537.85 319.674];
-% r_arb_backup = [573.35 386.86 278.52 0];
+param.tire_k = cfg.tire_params.tire_stiffness.value;                     % Tire spring rate [lb/in]      
+param.f_spring_k = cfg.frontSuspension.stiffness.spring_rate.value;      % Front spring stiffness [lb/in]
+param.r_spring_k = cfg.rearSuspension.stiffness.spring_rate.value;       % Rear spring stiffness [lb/in] 
+param.f_arb_k = cfg.frontSuspension.stiffness.arb_stiffness.value;       % Front ARB stiffness[lb/in]    
+param.r_arb_k = cfg.rearSuspension.stiffness.arb_stiffness.value;        % Rear ARB stiffness [lb/in]    
 
 %===| AERO |==============================================================
 
-param.C_L = 3.5;              % Coefficent of lift           
-param.CoP = 50;               % Center of pressure [%]
+param.C_L = cfg.aero_params.Cl;                 % Coefficent of lift           
+param.CoP = cfg.aero_params.CoP;                % Center of pressure [%]
 
 %% Assign Data and Complete Initialization
 
