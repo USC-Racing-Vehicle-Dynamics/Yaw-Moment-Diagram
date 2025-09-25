@@ -38,7 +38,7 @@ param.IP_r.pa = param.IP_r.psi * 6894.76;
 param.ackermann = cfg.steering.ackermann.value;                
 param.toe_f = cfg.frontSuspension.geom.static_toe.value;                             
 param.toe_r = cfg.rearSuspension.geom.static_toe.value;                             
-param.tireData.forceScale = cfg.simulation_params.tire_model.scaling_factor;      
+param.tireData.forceScale = cfg.tire_params.model.scaling_factor;      
 
 %===| SUSPENSION |========================================================
 

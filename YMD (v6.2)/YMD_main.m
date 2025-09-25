@@ -255,7 +255,7 @@ rangeLbl.SALbl2.Text = 'From';
 
 rangeField.SAField1 = uieditfield(tabs.setup, 'numeric');
 rangeField.SAField1.Position = [labels.plot.Position(1)+35 rangeLbl.SALbl2.Position(2) 50 22];
-rangeField.SAField1.Value = -10;
+rangeField.SAField1.Value = -12;
 
 rangeLbl.SALbl3 = uilabel(tabs.setup);
 rangeLbl.SALbl3.Position = [rangeField.SAField1.Position(1)+65 rangeLbl.SALbl2.Position(2) 50 22];
@@ -263,7 +263,7 @@ rangeLbl.SALbl3.Text = 'To';
 
 rangeField.SAField2 = uieditfield(tabs.setup, 'numeric');
 rangeField.SAField2.Position = [rangeLbl.SALbl3.Position(1)+35 rangeLbl.SALbl2.Position(2) 50 22];
-rangeField.SAField2.Value = 10;
+rangeField.SAField2.Value = 12;
 
 rangeLbl.SALbl4 = uilabel(tabs.setup);
 rangeLbl.SALbl4.Position = [rangeField.SAField2.Position(1)+65 rangeLbl.SALbl2.Position(2) 100 22];
@@ -271,7 +271,7 @@ rangeLbl.SALbl4.Text = 'No. Data Points';
 
 rangeField.SAField3 = uieditfield(tabs.setup, 'numeric');
 rangeField.SAField3.Position = [rangeLbl.SALbl4.Position(1)+100 rangeLbl.SALbl2.Position(2) 50 22];
-rangeField.SAField3.Value = 21;
+rangeField.SAField3.Value = 30;
 
 %-------------------------------------------------*
 % Numeric Edit Field: Steering Angle Range Inputs |
@@ -286,7 +286,7 @@ rangeLbl.deltaLbl2.Text = 'From';
 
 rangeField.deltaField1 = uieditfield(tabs.setup, 'numeric');
 rangeField.deltaField1.Position = [labels.plot.Position(1)+35 rangeLbl.deltaLbl2.Position(2) 50 22];
-rangeField.deltaField1.Value = -6;
+rangeField.deltaField1.Value = -12;
 
 rangeLbl.deltaLbl3 = uilabel(tabs.setup);
 rangeLbl.deltaLbl3.Position = [rangeField.deltaField1.Position(1)+65 rangeLbl.deltaLbl2.Position(2) 50 22];
@@ -294,7 +294,7 @@ rangeLbl.deltaLbl3.Text = 'To';
 
 rangeField.deltaField2 = uieditfield(tabs.setup, 'numeric');
 rangeField.deltaField2.Position = [rangeLbl.deltaLbl3.Position(1)+35 rangeLbl.deltaLbl2.Position(2) 50 22];
-rangeField.deltaField2.Value = 6;
+rangeField.deltaField2.Value = 12;
 
 rangeLbl.deltaLbl4 = uilabel(tabs.setup);
 rangeLbl.deltaLbl4.Position = [rangeField.deltaField2.Position(1)+65 rangeLbl.deltaLbl2.Position(2) 100 22];
@@ -302,7 +302,7 @@ rangeLbl.deltaLbl4.Text = 'No. Data Points';
 
 rangeField.deltaField3 = uieditfield(tabs.setup, 'numeric');
 rangeField.deltaField3.Position = [rangeLbl.deltaLbl4.Position(1)+100 rangeLbl.deltaLbl2.Position(2) 50 22];
-rangeField.deltaField3.Value = 13;
+rangeField.deltaField3.Value = 30;
 
 %---------------------------------------------*
 % Numeric Edit Field: Slip Ratio Range Inputs |

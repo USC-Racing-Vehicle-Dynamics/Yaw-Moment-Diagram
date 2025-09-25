@@ -1,191 +1,221 @@
-%% Yaw Moment Diagram: Post Processor
+%% Yaw Moment Diagram: Post Processor (Refactored)
+% This script loads YMD sweep data, performs various analyses on vehicle
+% balance and control, and generates summary plots.
 
-%% Clear
+%% --- Configuration & Setup ---
+clear; clc; close all;
 
-clear, clc, close all;
-
-%% Load Data
-
-cd ..
+% Add paths
+cd ..; % Assuming the script is in a subfolder
 addpath('YMD Sweep Results');
+addpath('YMD (v6.2)'); % For GetPolyLineIntersection
 
-% ADD DATA HERE
-data(1) = load('YMD Sweep Results/20mph_cop_sweep.mat');
-data(2) = load('YMD Sweep Results/40mph_cop_sweep.mat');
-data(3) = load('YMD Sweep Results/60mph_cop_sweep.mat');
+% --- Files to Load ---
+% Add the .mat files from your YMD sweep runs here.
+datafiles = {
+    'YMD Sweep Results/20mph_cop_sweep.mat';
+    'YMD Sweep Results/40mph_cop_sweep.mat';
+    'YMD Sweep Results/60mph_cop_sweep.mat'
+};
+
+% --- Corresponding Plot Names ---
+% Add a clean name for each datafile above. Used for titles and legends.
+datanames = {
+    '20 mph';
+    '40 mph';
+    '60 mph'
+};
 
 
-% Number of data sets
+% --- Basis Point Definition ---
+% Define the specific operating point for local stability/control analysis.
+basis.SA = 4;    % Body Slip Angle [deg]
+basis.Delta = 4; % Steering Angle [deg]
+basis.SX = 0;    % Longitudinal Slip Ratio
+
+%% --- Data Loading and Initialization ---
+% Load all specified data files into a structured array.
+for i = 1:length(datafiles)
+    data(i) = load(datafiles{i});
+end
+
 datasize = length(data);
 
-%% Sweep Information
+% Extract sweep information from the first data file (assumed consistent)
+sweepVarName = data(1).sweptParameter.name;
+sweepVarValue = data(1).sweptParameter.value;
+sweepVarRange = length(sweepVarValue);
 
-sweepVarName = data(1).sweptParameter.name; % Sweep parameter name
-sweepVarValue = data(1).sweptParameter.value; % Sweep parameter value
-sweepVarRange = length(data(1).sweptParameter.value); % # Sweep parameter range
+fprintf('Processing %d datasets sweeping "%s".\n', datasize, sweepVarName);
 
-%% Grip Analysis
+%% --- Analysis 1: Grip Limit Behavior ---
+% Find the yaw moment at the maximum lateral acceleration limits. This
+% tells us the vehicle's handling balance (understeer/oversteer) at the
+% absolute limit of grip.
 
-% Lateral accelerations at grip [G]
+% Pre-allocate memory for results
 grip.Ay_left = zeros(datasize, sweepVarRange);
 grip.Ay_right = zeros(datasize, sweepVarRange);
-
-% Yaw Moment at grip [lb*ft]
 grip.M_left = zeros(datasize, sweepVarRange);
 grip.M_right = zeros(datasize, sweepVarRange);
 
-for i = 1: datasize
-
-    for j = 1: sweepVarRange
-
-        grip.Ay_left(i, j) = min(data(i).Ay(:, :, :, j), [], "all");
-        grip.Ay_right(i, j) = max(data(i).Ay(:, :, :, j), [], "all");
-
-        Mi = data(i).M(:, :, :, j);
+for i = 1:datasize
+    for j = 1:sweepVarRange
         Ayi = data(i).Ay(:, :, :, j);
+        Mi = data(i).M(:, :, :, j);
+        
 
-        grip.M_left(i, j) = Mi(Ayi == grip.Ay_left(i, j));
-        grip.M_right(i, j) = Mi(Ayi == grip.Ay_right(i, j));
-
+        [min_Ay, idx_left] = min(Ayi, [], 'all', 'linear');
+        [max_Ay, idx_right] = max(Ayi, [], 'all', 'linear');
+        
+        grip.Ay_left(i, j) = min_Ay;
+        grip.M_left(i, j) = Mi(idx_left);
+        
+        grip.Ay_right(i, j) = max_Ay;
+        grip.M_right(i, j) = Mi(idx_right);
     end
-
 end
 
-% Absolute average lateral acceleration [G]
-grip.Ay_absAvg = (abs(grip.Ay_left) + abs(grip.Ay_right))/2;
+% Calculate more meaningful combined metrics
+grip.Ay_absAvg = (abs(grip.Ay_left) + abs(grip.Ay_right)) / 2;
+grip.M_asymmetry = grip.M_left + grip.M_right; % Should be ~0 for symmetric balance
+grip.M_balance_magnitude = (abs(grip.M_left) + abs(grip.M_right)) / 2; % Avg magnitude of balance
 
-% Absolute average yaw moment [lb*ft]
-grip.M_avg = (grip.M_left + grip.M_right)/2;
 
-%% Limit Balance Analysis
+%% --- Analysis 2: Steady-State Limit Balance ---
+% Find the maximum lateral G the car can achieve in a steady-state turn
+% (where the inherent yaw moment is zero).
 
-addpath('YMD (v6.2)');
+% Pre-allocate
+limitBalance.Ay_left = zeros(datasize, sweepVarRange);
+limitBalance.Ay_right = zeros(datasize, sweepVarRange);
 
-for i = 1: datasize
-
-    for j = 1: sweepVarRange
-
-        intersection = [];
-
-        for k = 1: size(data(i).Ay(:, :, :, j), 1)
-
+for i = 1:datasize
+    for j = 1:sweepVarRange
+        intersections = [];
+        % Iterate through each body slip angle isoline to find its
+        % intersection with the Mz = 0 axis.
+        for k = 1:size(data(i).Ay, 1)
             SA_isoline_x = data(i).Ay(k, :, :, j);
             SA_isoline_y = data(i).M(k, :, :, j);
-
-            SA_isoline = [SA_isoline_x; SA_isoline_y];
-
-            M0_line = [-5 5; 0 0];
-
-            [~, intersection(k, :)] = GetPolyLineIntersection(SA_isoline, M0_line);
-
+            
+            % Reshape to a 2xN array for the intersection function
+            SA_isoline = [SA_isoline_x(:)'; SA_isoline_y(:)'];
+            M0_line = [-10 10; 0 0]; % A long horizontal line at Mz = 0
+            
+            [~, intersection_points] = GetPolyLineIntersection(SA_isoline, M0_line);
+            if ~isempty(intersection_points)
+                intersections = [intersections; intersection_points'];
+            end
         end
-
-
-    % Find limit balance accelerations [G]
-    limitBalance.Ay_right(i, j) = max(intersection(:, 1)); 
-    limitBalance.Ay_left(i, j) = min(intersection(:, 1));
-    limitBalance.Ay_absAvg(i, j) = (limitBalance.Ay_right(i, j) - limitBalance.Ay_left(i, j)) / 2;
-
-    end    
-
+        
+        % The limit balance is the min/max of all found intersection points
+        if ~isempty(intersections)
+            limitBalance.Ay_left(i, j) = min(intersections(:, 1));
+            limitBalance.Ay_right(i, j) = max(intersections(:, 1));
+        end
+    end
 end
+% Corrected calculation for average absolute G
+limitBalance.Ay_absAvg = (abs(limitBalance.Ay_left) + abs(limitBalance.Ay_right)) / 2;
 
-%% Lateral Acceleration & Yaw Moment @ Basis Points 
 
-% Define basis inputs
-basis.SA = 4;
-basis.Delta = 4;
-basis.SX = 0;
+%% --- Analysis 3: Local Behavior @ Basis Point ---
+% Analyze the vehicle's stability (dMz/dSA) and control (dMz/dDelta)
+% by calculating numerical gradients around a defined basis point.
 
-% Basis indices
-SA_index(i) = find(data(i).SA == basis.SA);
-Delta_index(i) = find(data(i).Delta == basis.Delta);
-SX_index(i) = find(data(i).SX == basis.SX);
-
-% Basis lateral acceleration & yaw moment
+% Pre-allocate
 basis.Ay = zeros(datasize, sweepVarRange);
 basis.M = zeros(datasize, sweepVarRange);
+stability.average = zeros(datasize, sweepVarRange);
+control.average = zeros(datasize, sweepVarRange);
 
-for i = 1: datasize
-
-    % Find basis indices
-    SA_index(i) = find(data(i).SA == basis.SA);
-    Delta_index(i) = find(data(i).Delta == basis.Delta);
-    SX_index(i) = find(data(i).SX == basis.SX);
+for i = 1:datasize
+    % Find the nearest indices for the basis point for THIS dataset
+    [~, sa_idx] = min(abs(data(i).SA - basis.SA));
+    [~, delta_idx] = min(abs(data(i).Delta - basis.Delta));
+    [~, sx_idx] = min(abs(data(i).SX - basis.SX));
     
-    for j = 1: sweepVarRange
-    
-        % Find basis lateral acceleration [G] & yaw moment [lb*ft]
-        basis.Ay(i, j) = data(i).Ay(SA_index(i), Delta_index(i), SX_index(i), j);
-        basis.M(i, j) = data(i).M(SA_index(i), Delta_index(i), SX_index(i), j);
-    
+    % Check for edge cases to prevent index out of bounds errors
+    if sa_idx == 1 || sa_idx == length(data(i).SA) || delta_idx == 1 || delta_idx == length(data(i).Delta)
+        warning('Basis point is at the edge of the data grid for dataset %d. Stability/Control results may be inaccurate.', i);
+        continue; % Skip stability/control calculation for this dataset
     end
-
-end
-
-%% Stability & Control @ Basis Points
-
-% Yaw moment at points around basis
-basis_left.M = zeros(datasize, sweepVarRange);
-basis_right.M = zeros(datasize, sweepVarRange);
-basis_upper.M = zeros(datasize, sweepVarRange);
-basis_lower.M = zeros(datasize, sweepVarRange);
-
-for i = 1: datasize
-
-    for j = 1: sweepVarRange
     
-        % Find yaw moment at points around basis [lb*ft]
-        basis_left.M(i, j) = data(i).M(SA_index(i)-1, Delta_index(i), SX_index(i), j);
-        basis_right.M(i, j) = data(i).M(SA_index(i)+1, Delta_index(i), SX_index(i), j);
-        basis_upper.M(i, j) = data(i).M(SA_index(i), Delta_index(i)+1, SX_index(i), j);
-        basis_lower.M(i, j) = data(i).M(SA_index(i), Delta_index(i)-1, SX_index(i), j);
-    
-        % Compute stability: d(yaw moment)/d(body slip angle) [lb*ft/deg]
-        stability.left(i, j) = (basis_left.M(i, j) - basis.M(i, j)) / (data(i).SA(SA_index(i)-1) - data(i).SA(SA_index(i)));
-        stability.right(i, j) = (basis_right.M(i, j) - basis.M(i, j)) / (data(i).SA(SA_index(i)+1) - data(i).SA(SA_index(i)));
-        stability.average(i, j) = (stability.left(i, j) + stability.right(i, j)) / 2;
+    for j = 1:sweepVarRange
+        % Extract Ay and Mz at the basis point
+        basis.Ay(i, j) = data(i).Ay(sa_idx, delta_idx, sx_idx, j);
+        basis.M(i, j) = data(i).M(sa_idx, delta_idx, sx_idx, j);
         
-        % Compute control: d(yaw moment)/d(steering angle) [lb*ft/deg]
-        control.upper(i, j) = (basis_upper.M(i, j) - basis.M(i, j)) / (data(i).Delta(Delta_index(i)+1) - data(i).Delta(Delta_index(i)));
-        control.lower(i, j) = (basis_lower.M(i, j) - basis.M(i, j)) / (data(i).Delta(Delta_index(i)-1) - data(i).Delta(Delta_index(i)));
-        control.average(i, j) = (control.upper(i, j) + control.lower(i, j)) / 2;
-
+        % --- Stability (dMz/dSA) ---
+        Mz_sa_minus = data(i).M(sa_idx-1, delta_idx, sx_idx, j);
+        Mz_sa_plus = data(i).M(sa_idx+1, delta_idx, sx_idx, j);
+        dSA = data(i).SA(sa_idx+1) - data(i).SA(sa_idx-1);
+        stability.average(i, j) = (Mz_sa_plus - Mz_sa_minus) / dSA;
+        
+        % --- Control (dMz/dDelta) ---
+        Mz_delta_minus = data(i).M(sa_idx, delta_idx-1, sx_idx, j);
+        Mz_delta_plus = data(i).M(sa_idx, delta_idx+1, sx_idx, j);
+        dDelta = data(i).Delta(delta_idx+1) - data(i).Delta(delta_idx-1);
+        control.average(i, j) = (Mz_delta_plus - Mz_delta_minus) / dDelta;
     end
-
 end
 
-%% Plotting
 
-figure; 
-tiledlayout(2, 2);
+%% --- Plotting ---
 
-% Grip lateral acceleration
-nexttile; hold on;
-plot(sweepVarValue, grip.M_right, '-o');
-xlabel('Front Center of Pressure [%]'); 
-ylabel('Average Yaw Moment [lb*ft]'); 
-title('Vehicle Balance');
-legend('20 mph', '40 mph', '60 mph', 'Location', 'best');
+% SUMMARY PLOTS
+figure('Name', 'Analysis Summary Plots');
+tiledlayout(2, 2, 'TileSpacing', 'compact', 'Padding', 'compact');
+% FIX: Use the predefined datanames for the legend
+legend_labels = datanames;
 
-% Limit balance lateral acceleration
-nexttile; hold on;
-plot(sweepVarValue, limitBalance.Ay_absAvg, '-o');
-xlabel('Front Center of Pressure [%]'); 
-ylabel('Absolue Average Lateral Acceleration [G]'); 
-title('Limit Balance Analysis Grip');
-legend('20 mph', '40 mph', '60 mph', 'Location', 'best');
+% Plot: Vehicle Balance at Grip Limit
+nexttile; hold on; grid on;
+plot(sweepVarValue, grip.M_right, '-o', 'LineWidth', 1.5);
+xlabel(sweepVarName);
+ylabel('Yaw Moment @ Left Grip Limit [lb*ft]');
+title('Yaw Moment at Grip Limit');
+legend(legend_labels, 'Location', 'best', 'Interpreter', 'none');
+yline(0, 'k--', 'HandleVisibility', 'off');
 
-% Stability @ basis
-nexttile; hold on;
-plot(sweepVarValue, stability.average, '-o');
-xlabel(sweepVarName); 
-ylabel('Average Stability [lb*ft/deg]'); 
-title('Basis Analysis: Stability');
+% FIX: Zoom in on the data by setting dynamic Y-limits
+min_val = min(grip.M_right, [], 'all');
+max_val = max(grip.M_right, [], 'all');
+buffer = (max_val - min_val) * 0.1; % 10% buffer
+if buffer == 0; buffer = 1; end % Add a small buffer if all values are the same
+ylim([min_val - buffer, max_val + buffer]);
 
-% Control @ basis
-nexttile; hold on;
-plot(sweepVarValue, control.average, '-o');
-xlabel(sweepVarName); 
-ylabel('Average Control [lb*ft/deg]'); 
-title('Basis Analysis: Control');
+
+% Plot: Steady-State Grip Limit
+nexttile; hold on; grid on;
+plot(sweepVarValue, limitBalance.Ay_absAvg, '-o', 'LineWidth', 1.5);
+xlabel(sweepVarName);
+ylabel('Avg. Abs. Lateral Accel. [G]');
+title('Steady-State Grip Limit (at Mz=0)');
+legend(legend_labels, 'Location', 'best', 'Interpreter', 'none');
+
+% Plot: Stability @ Basis
+nexttile; hold on; grid on;
+plot(sweepVarValue, stability.average, '-o', 'LineWidth', 1.5);
+xlabel(sweepVarName);
+ylabel('Stability (dMz/dSA) [lb*ft/deg]');
+title(sprintf('Stability @ SA=%.1f, Delta=%.1f', basis.SA, basis.Delta));
+legend(legend_labels, 'Location', 'best', 'Interpreter', 'none');
+% FIX: Hide the yline from the legend to remove the rogue "data1" entry
+yline(0, 'k--', 'HandleVisibility', 'off'); % Stability boundary
+
+% Plot: Control @ Basis
+nexttile; hold on; grid on;
+plot(sweepVarValue, control.average, '-o', 'LineWidth', 1.5);
+xlabel(sweepVarName);
+ylabel('Control (dMz/dDelta) [lb*ft/deg]');
+title(sprintf('Control @ SA=%.1f, Delta=%.1f', basis.SA, basis.Delta));
+legend(legend_labels, 'Location', 'best', 'Interpreter', 'none');
+
+
+
+
+
+
+
