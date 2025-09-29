@@ -3,7 +3,7 @@
 % balance and control, and generates summary plots.
 
 %% --- Configuration & Setup ---
-clear; clc; close all;
+% clear; clc; close all;
 
 % Add paths
 cd ..; % Assuming the script is in a subfolder
@@ -19,7 +19,6 @@ datafiles = {
 };
 
 % --- Corresponding Plot Names ---
-% Add a clean name for each datafile above. Used for titles and legends.
 datanames = {
     '20 mph';
     '40 mph';
@@ -28,7 +27,6 @@ datanames = {
 
 
 % --- Basis Point Definition ---
-% Define the specific operating point for local stability/control analysis.
 basis.SA = 4;    % Body Slip Angle [deg]
 basis.Delta = 4; % Steering Angle [deg]
 basis.SX = 0;    % Longitudinal Slip Ratio
